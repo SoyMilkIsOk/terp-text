@@ -2,14 +2,12 @@ app TerpText {
   wasp: {
     version: "^0.11.4"
   },
-  title: "TerpText",
+  title: "Terp-Text",
   client: {
     rootComponent: import { Layout } from "@client/Layout.jsx"
   },
   db: {
-    prisma: {
-      clientPreviewFeatures: ["extendedWhereUnique"]
-    }
+    system: PostgreSQL,
   },
   auth: {
     userEntity: User,
