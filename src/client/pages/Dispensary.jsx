@@ -11,7 +11,8 @@ export function DispensaryPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [notificationSettings, setNotificationSettings] = useState('');
   const { data: dispensary, isLoading: dispensaryLoading, error: dispensaryError } = useQuery(getDispensary, { name: dispensaryName });
-  const { data: strains, isLoading: strainsLoading, error: strainsError } = useQuery(getStrains, { dispensaryId: dispensary?.id });
+  // const strains = dispensary.strains;
+  const { data: strains, isLoading: strainsLoading, error: strainsError } = useQuery(getStrains, { dispensaryName: dispensaryName});
   const enrollUserFn = useAction(enrollUser);
 
   const handleEnrollUser = () => {
@@ -36,14 +37,20 @@ export function DispensaryPage() {
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
       />
-      <p className="mb-2">Select notification settings:</p>
-      <input
-        type="text"
-        placeholder="Notification settings"
-        className="px-2 py-1 border rounded mb-4"
-        value={notificationSettings}
-        onChange={(e) => setNotificationSettings(e.target.value)}
-      />
+      <p className="mb-2">Select strains to be notified for:</p>
+      {/* map check box selector for all available strains */}
+      {strains?.map((strain) => (
+        <div key={strain.id} className="flex items-center mb-2">
+          <input
+            type="checkbox"
+            className="mr-2"
+            value={strain.id}
+            onChange={(e) => setNotificationSettings(e.target.value)}
+          />
+          <p>{strain.name}</p>
+        </div>
+      ))}
+
       <button
         onClick={handleEnrollUser}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

@@ -33,7 +33,8 @@ export const Layout = ({ children }) => {
       <footer>
         <div className="container mx-auto p-4">
           <p className="text-center text-gray-500 text-sm">
-            TerpText ~ Powered by Wasp
+            TerpText ~ Powered by <a href="https://terpmetrix.com" className="underline">
+              Terpmetrix </a>
           </p>
         </div>
       </footer>

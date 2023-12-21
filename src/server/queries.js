@@ -9,21 +9,19 @@ export const getDispensary = async ({ name }, context) => {
 
   if (!dispensary) throw new HttpError(404, 'No dispensary with name ' + name);
 
+  console.log('dispensary', dispensary);
+
   return dispensary;
 }
 
 export const getStrains = async ({ dispensaryName }, context) => {
   if (!context.user) { throw new HttpError(401) };
 
+  console.log('dispensaryName', dispensaryName);
+
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name: dispensaryName },
+    where: { dispensaryName },
   });
-
-  if (!dispensary) throw new HttpError(404, 'No dispensary with name ' + dispensaryName);
-
-  const strains = await context.entities.Strain.findMany({
-    where: { dispensaryId: dispensary.id }
-  });
-
-  return strains;
+  console.log('dispensary', dispensary);
+  return dispensary.strains;
 }

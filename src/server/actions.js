@@ -3,7 +3,7 @@ import HttpError from '@wasp/core/HttpError.js'
 export const enrollUser = async (args, context) => {
   if (!context.user) { throw new HttpError(401) };
 
-  const { userId, strainId, notificationSettings } = args;
+  const { userId, strainId } = args;
 
   const existingUserStrain = await context.entities.UserStrain.findFirst({
     where: {

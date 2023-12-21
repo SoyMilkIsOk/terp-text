@@ -30,23 +30,25 @@ page SignupPage {
 
 entity User {=psl
     id          Int          @id @default(autoincrement())
-    username    String       @unique
+    username   String      @unique @default(cuid())
+    phone    String       @unique @default("000-000-0000")
     password    String
-    userStrains UserStrain[]
+    strains UserStrain[]
+    dispensaries DispensaryUser[]
 psl=}
 
 entity Dispensary {=psl
     id      Int      @id @default(autoincrement())
     name    String   @unique
-    strains Strain[]
+    strains DispensaryStrain[]
+    users DispensaryUser[]
 psl=}
 
 entity Strain {=psl
     id           Int          @id @default(autoincrement())
-    dispensary   Dispensary   @relation(fields: [dispensaryId], references: [id])
-    dispensaryId Int
     name         String
-    userStrains  UserStrain[]
+    users  UserStrain[]
+    dispensaries DispensaryStrain[]
 psl=}
 
 entity UserStrain {=psl
@@ -55,6 +57,22 @@ entity UserStrain {=psl
     userId   Int
     strain   Strain @relation(fields: [strainId], references: [id])
     strainId Int
+psl=}
+
+entity DispensaryStrain {=psl
+    id           Int          @id @default(autoincrement())
+    dispensary   Dispensary   @relation(fields: [dispensaryId], references: [id])
+    dispensaryId Int
+    strain       Strain       @relation(fields: [strainId], references: [id])
+    strainId     Int
+psl=}
+
+entity DispensaryUser {=psl
+    id           Int          @id @default(autoincrement())
+    dispensary   Dispensary   @relation(fields: [dispensaryId], references: [id])
+    dispensaryId Int
+    user         User         @relation(fields: [userId], references: [id])
+    userId       Int
 psl=}
 
 action enrollUser {
