@@ -1,55 +1,86 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@wasp/queries';
-import { useAction } from '@wasp/actions';
-import getDispensary from '@wasp/queries/getDispensary';
-import getStrains from '@wasp/queries/getStrains';
-import enrollUser from '@wasp/actions/enrollUser';
+import React, { useState } from "react";
+import useAuth from "@wasp/auth/useAuth";
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@wasp/queries";
+import { useAction } from "@wasp/actions";
+import getDispensary from "@wasp/queries/getDispensary";
+import getUser from "@wasp/queries/getUser";
+import enrollUser from "@wasp/actions/enrollUser";
 
 export function DispensaryPage() {
   const { dispensaryName } = useParams();
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [notificationSettings, setNotificationSettings] = useState('');
-  const { data: dispensary, isLoading: dispensaryLoading, error: dispensaryError } = useQuery(getDispensary, { name: dispensaryName });
-  // const strains = dispensary.strains;
-  const { data: strains, isLoading: strainsLoading, error: strainsError } = useQuery(getStrains, { dispensaryName: dispensaryName});
+  //get user phone number and autofill if logged in
+  const { data: user } = useAuth();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  // get users strains and dispensary notification settings
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery(getUser, { id: user?.id });
+
+  // array to be used to update user notification settings
+  const [notificationSettings, setNotificationSettings] = useState([]);
+  const {
+    data: dispensary,
+    isLoading: dispensaryLoading,
+    error: dispensaryError,
+  } = useQuery(getDispensary, { name: dispensaryName });
+
+  // get strains from dispensary obj and map over them to array for display
+  const strains = dispensary?.strains;
+
+  // convery dispensary name to capitalized case
+  const dispensaryNameCapitalized =
+    dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1);
+
   const enrollUserFn = useAction(enrollUser);
 
   const handleEnrollUser = () => {
     enrollUserFn({
       userId: 1, // Change this to the actual user ID
       strainId: 1, // Change this to the selected strain ID
-      notificationSettings: notificationSettings
+      notificationSettings: notificationSettings,
     });
   };
 
-  if (dispensaryLoading || strainsLoading) return 'Loading...';
-  if (dispensaryError || strainsError) return 'Error: ' + (dispensaryError || strainsError);
+  if (dispensaryLoading) return "Loading...";
+  if (dispensaryError) return "Error: " + dispensaryError;
+
+  console.log(userData);
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">{dispensary?.name}</h1>
+      {/* if user is enrolled to dispensary notifications, add ✅ next to name*/}
+      {/* {console.log(user)} */}
+      {/* {users.user.includes(user.id) && <p>✅</p>} */}
+      <h1 className="text-2xl font-bold mb-4">{dispensaryNameCapitalized}</h1>
+
+      {/* Phone number input */}
       <p className="mb-2">Enter your phone number to receive notifications:</p>
       <input
         type="text"
-        placeholder="Phone number"
+        placeholder={user?.phone || "Enter phone number"}
         className="px-2 py-1 border rounded mb-4"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
       />
+
       <p className="mb-2">Select strains to be notified for:</p>
       {/* map check box selector for all available strains */}
-      {strains?.map((strain) => (
-        <div key={strain.id} className="flex items-center mb-2">
+      {strains?.map((i) => (
+        <div key={i.strain.id} className="flex items-center mb-2">
           <input
             type="checkbox"
             className="mr-2"
-            value={strain.id}
+            value={i.strain.id}
             onChange={(e) => setNotificationSettings(e.target.value)}
+            checked={userData?.strains.includes(i.strain.id)}
           />
-          <p>{strain.name}</p>
+          <label>{i.strain.name}</label>
         </div>
       ))}
+      {/* enroll button */}
 
       <button
         onClick={handleEnrollUser}
@@ -57,13 +88,18 @@ export function DispensaryPage() {
       >
         Enroll
       </button>
-      <h2 className="text-xl font-bold mt-6">Available Strains:</h2>
-      {strains?.map((strain) => (
-        <div key={strain.id} className="p-2 bg-gray-100 rounded-lg mt-4">
-          <h3 className="text-lg font-bold mb-2">{strain.name}</h3>
-          <p>{strain.description}</p>
-        </div>
-      ))}
+      <h2 className="text-xl font-bold mt-6">All Strains:</h2>
+      {/* display list of all dispensary strains, if available, text green, if not, text red  */}
+      <ul className="list-disc list-inside">
+        {strains?.map((i) => (
+          <li
+            key={i.strain.id}
+            className={i.available ? "text-green-500" : "text-red-500"}
+          >
+            {i.strain.name}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 /.wasp/
-
+/migrations/
 # We ignore env files recognized and used by Wasp.
 .env.server
 .env.client

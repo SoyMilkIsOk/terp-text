@@ -29,11 +29,11 @@ page SignupPage {
 }
 
 entity User {=psl
-    id          Int          @id @default(autoincrement())
-    username   String      @unique @default(cuid())
-    phone    String       @unique @default("000-000-0000")
-    password    String
-    strains UserStrain[]
+    id           Int          @id @default(autoincrement())
+    username     String      @unique @default(cuid())
+    phone        String       @unique @default("000-000-0000")
+    password     String
+    strains      UserStrain[]
     dispensaries DispensaryUser[]
 psl=}
 
@@ -41,13 +41,13 @@ entity Dispensary {=psl
     id      Int      @id @default(autoincrement())
     name    String   @unique
     strains DispensaryStrain[]
-    users DispensaryUser[]
+    users   DispensaryUser[]
 psl=}
 
 entity Strain {=psl
     id           Int          @id @default(autoincrement())
-    name         String
-    users  UserStrain[]
+    name         String @unique
+    users        UserStrain[]
     dispensaries DispensaryStrain[]
 psl=}
 
@@ -60,19 +60,20 @@ entity UserStrain {=psl
 psl=}
 
 entity DispensaryStrain {=psl
-    id           Int          @id @default(autoincrement())
-    dispensary   Dispensary   @relation(fields: [dispensaryId], references: [id])
-    dispensaryId Int
-    strain       Strain       @relation(fields: [strainId], references: [id])
-    strainId     Int
+    id             Int          @id @default(autoincrement())
+    dispensary     Dispensary   @relation(fields: [dispensaryName], references: [name])
+    dispensaryName String @default("dispensary name")
+    strain         Strain       @relation(fields: [strainName], references: [name])
+    strainName     String @default("strain name")
+    available      Boolean      @default(false)
 psl=}
 
 entity DispensaryUser {=psl
-    id           Int          @id @default(autoincrement())
-    dispensary   Dispensary   @relation(fields: [dispensaryId], references: [id])
-    dispensaryId Int
-    user         User         @relation(fields: [userId], references: [id])
-    userId       Int
+    id             Int          @id @default(autoincrement())
+    dispensary     Dispensary   @relation(fields: [dispensaryName], references: [name])
+    dispensaryName String @default("dispensary name")
+    user           User         @relation(fields: [userId], references: [id])
+    userId         Int
 psl=}
 
 action enrollUser {
@@ -93,6 +94,11 @@ query getDispensary {
 query getStrains {
   fn: import { getStrains } from "@server/queries.js",
   entities: [Strain]
+}
+
+query getUser {
+  fn: import { getUser } from "@server/queries.js",
+  entities: [User]
 }
 
 route DispensaryRoute { path: "/:dispensaryName", to: DispensaryPage }
