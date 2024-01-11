@@ -3,7 +3,7 @@ import { error } from "console";
 
 export const enrollUser = async (args, context) => {
   if (!context.user) {
-    throw new HttpError(401);
+    // throw new HttpError(401);
   }
 
   const { dispensaryName, notificationSettings } = args;
