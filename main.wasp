@@ -3,8 +3,12 @@ app TerpText {
     version: "^0.11.4"
   },
   title: "Terp-Text",
+  dependencies: [
+    ("react-icons", "4.8.0"),
+    ("@chakra-ui/react", "2.8.0")
+  ],
   client: {
-    rootComponent: import { Layout } from "@client/Layout.jsx"
+    rootComponent: import { App } from "@client/App.jsx"
   },
   db: {
     system: PostgreSQL,
@@ -50,6 +54,7 @@ entity Strain {=psl
     name         String @unique
     users        UserStrain[]
     dispensaries DispensaryStrain[]
+    grower       String @default("grower")
 psl=}
 
 entity UserStrain {=psl
@@ -71,6 +76,7 @@ entity DispensaryStrain {=psl
     strain         Strain       @relation(fields: [strainName], references: [name])
     strainName     String @default("strain name")
     available      Boolean      @default(false)
+    availableDate  DateTime     @default(now())
 psl=}
 
 entity DispensaryUser {=psl
@@ -106,7 +112,20 @@ query getUser {
   entities: [User]
 }
 
+query getAllDispensaries {
+  fn: import { getAllDispensaries } from "@server/queries.js",
+  entities: [Dispensary]
+}
+
+route HomeRoute { path: "/", to: HomePage }
+
+page HomePage {
+  component: import { Home } from "@client/pages/Home.jsx",
+  authRequired: false
+}
+
 route DispensaryRoute { path: "/:dispensaryName", to: DispensaryPage }
+
 page DispensaryPage {
   component: import { DispensaryPage } from "@client/pages/Dispensary.jsx",
   authRequired: false

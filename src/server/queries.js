@@ -1,10 +1,32 @@
 import HttpError from '@wasp/core/HttpError.js'
 
 export const getDispensary = async ({ name }, context) => {
-  // if (!context.user) { throw new HttpError(401) };
 
   const dispensary = await context.entities.Dispensary.findUnique({
     where: { name },
+    include : {
+      users: {
+        include: {
+          user: true,
+        }
+      },
+      strains: {
+        include: {
+          strain: true,
+        }
+      },
+      userStrains: true,
+    }
+  });
+
+  if (!dispensary) throw new HttpError(404, 'No dispensary with name ' + name);
+
+  return dispensary;
+}
+
+export const getAllDispensaries = async (args, context) => {
+
+  const dispensaries = await context.entities.Dispensary.findMany({
     include : {
       users: {
         include: {
@@ -19,11 +41,9 @@ export const getDispensary = async ({ name }, context) => {
     }
   });
 
-  if (!dispensary) throw new HttpError(404, 'No dispensary with name ' + name);
+  // console.log('dispensaries', dispensaries);
 
-  // console.log('dispensary', dispensary);
-
-  return dispensary;
+  return dispensaries;
 }
 
 export const getStrains = async ({ dispensaryName }, context) => {

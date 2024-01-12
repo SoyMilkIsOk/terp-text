@@ -2,16 +2,18 @@ import { Link } from "react-router-dom";
 import useAuth from '@wasp/auth/useAuth';
 import logout from '@wasp/auth/logout';
 import "./Main.css";
+import { ChakraProvider } from '@chakra-ui/react'
 
-export const Layout = ({ children }) => {
+export const App = ({ children }) => {
   const { data: user } = useAuth();
 
   return (
+    <ChakraProvider>
     <div className="flex flex-col min-h-screen">
       <header className="bg-primary-800 text-white p-4">
         <div className="container mx-auto px-4 py-2 flex justify-between">
           <Link to="/">
-            <h1 className="text-xl2 font-semibold">TerpText</h1>
+            <h1 className="text-[1.2em] font-semibold">TerpText</h1>
           </Link>
           { user ? (
             <span>
@@ -39,5 +41,6 @@ export const Layout = ({ children }) => {
         </div>
       </footer>
     </div>
+    </ChakraProvider>
   );
 };
