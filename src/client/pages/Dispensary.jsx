@@ -1,80 +1,79 @@
-import React, { useState } from "react";
-import useAuth from "@wasp/auth/useAuth";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@wasp/queries";
-import { useAction } from "@wasp/actions";
-import getDispensary from "@wasp/queries/getDispensary";
-// import getUser from "@wasp/queries/getUser";
-import enrollUser from "@wasp/actions/enrollUser";
 import { Button, Stack } from "@chakra-ui/react";
 import { IoMdLogIn } from "react-icons/io";
 import { GrUpdate } from "react-icons/gr";
+import useAuth from "@wasp/auth/useAuth";
+import { useQuery } from "@wasp/queries";
+import { useAction } from "@wasp/actions";
+import getDispensary from "@wasp/queries/getDispensary";
+import enrollUser from "@wasp/actions/enrollUser";
 
 export function DispensaryPage() {
-  // get dispensary name from url
+  // Extracting parameters from URL
   const { dispensaryName } = useParams();
-
-  //get user data
+  // Authentication hook to get user data
   const { data: user } = useAuth();
+  // Action hook for enrolling or updating user notifications
+  const enrollUserFn = useAction(enrollUser);
 
-  // get users strains and dispensary notification settings
-  // const {
-  //   data: userData,
-  //   isLoading: userLoading,
-  //   error: userError,
-  // } = useQuery(getUser, { id: user?.id });
-
-  // array to be used to update user notification settings
-  const [notificationSettings, setNotificationSettings] = useState([]);
-
-  // get dispensary data
+  // Fetching dispensary data using custom query hook
   const {
     data: dispensary,
     isLoading: dispensaryLoading,
     error: dispensaryError,
   } = useQuery(getDispensary, { name: dispensaryName });
 
-  // get strains from dispensary obj and map over them to array for display
-  const strains = dispensary?.strains;
+  // State for managing user's notification settings
+  const [notificationSettings, setNotificationSettings] = useState([]);
 
-  // convery dispensary name to capitalized case
-  const dispensaryNameCapitalized =
-    dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1);
+  // Effect hook for initializing notification settings from fetched dispensary data
+  useEffect(() => {
+    if (dispensary && user) {
+      const userSubscriptions = dispensary.userStrains
+        .filter(us => us.userId === user.id)
+        .map(us => us.strainId);
+      setNotificationSettings(userSubscriptions);
+      console.log("Initialized notification settings:", userSubscriptions);
+    }
+  }, [dispensary, user]);
 
-  const enrollUserFn = useAction(enrollUser);
-
-  const handleEnrollUser = () => {
-    //call enrollUser action and handle error + success using hooks
-    enrollUserFn({
-      dispensaryName,
-      notificationSettings,
-    })
-      .then(() => {
-        alert("Success!");
-      })
-      .catch((err) => {
-        console.log(err);
-        alert("Error: " + err.message);
-      });
+  // Function to handle user enrollment or updates
+  const handleEnrollOrUpdate = () => {
+    const actionType = (notificationSettings.length === 0 && !isUserEnrolled) ? 'Enroll' : 'Update';
+    enrollUserFn({ dispensaryName, notificationSettings, update: actionType === 'Update' })
+      .then(() => alert(`${actionType} Successful!`))
+      .catch(err => alert(`Error: ${err.message}`));
   };
 
-  if (dispensaryLoading) return "Loading...";
-  if (dispensaryError) return "Error: " + dispensaryError;
+  // Function to handle changes in checkbox state
+  const handleChange = (strainId, isChecked) => {
+    setNotificationSettings(prevSettings => {
+      const newSettings = isChecked
+        ? [...prevSettings, strainId]
+        : prevSettings.filter(id => id !== strainId);
+      console.log("Updated notification settings:", newSettings);
+      return newSettings;
+    });
+  };
 
-  // console.log(dispensary);
+  // Loading and error handling
+  if (dispensaryLoading) return "Loading...";
+  if (dispensaryError) return `Error: ${dispensaryError}`;
+
+  // Check if the user is already enrolled in notifications for this dispensary
+  const isUserEnrolled = dispensary.userStrains.some(us => us.userId === user?.id);
+  const strains = dispensary?.strains;
 
   return (
     <div className="p-4">
-      {/* if user is enrolled to dispensary notifications, add ✅ next to name*/}
-      {/* {users.user.includes(user.id) && <p>✅</p>} */}
+      {/* Dispensary name display */}
       <h1 className="text-2xl font-bold mb-4">
-        {dispensaryNameCapitalized}{" "}
-        {(dispensary.userStrains.find((i) => i.userId === user?.id) && "✅") ||
-          ""}{" "}
+        {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)} {isUserEnrolled ? "✅" : " "}
       </h1>
 
-      {/* if user is not logged in, show link to login/signup */}
-      {!user && (
+      {/* Login button for non-authenticated users */}
+      {!user ? (
         <Stack direction="row" spacing={4}>
           <Link to="/login">
             <Button leftIcon={<IoMdLogIn />} colorScheme="blue" variant="solid">
@@ -82,77 +81,46 @@ export function DispensaryPage() {
             </Button>
           </Link>
         </Stack>
-      )}
-
-      {/* map check box selector for all available strains */}
-      {/* if logged in show, if not, do not */}
-      {user && (
+      ) : (
+        // Strain notification settings for logged-in users
         <div className="mt-4">
-          <h2 className="text-xl font-bold mb-2">Strain Notifcations:</h2>
+          <h2 className="text-xl font-bold mb-2">Strain Notifications:</h2>
           <ul className="list-disc list-inside">
-            {strains?.map((i) => (
+            {strains?.map(i => (
               <div key={i.strain.id} className="flex items-center mb-2">
                 <input
                   type="checkbox"
                   className="mr-2"
-                  value={i.strain.id}
-                  // list should update with strain id on check, only if not already in list
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setNotificationSettings([
-                        ...notificationSettings,
-                        e.target.value,
-                      ]);
-                    } else {
-                      setNotificationSettings(
-                        notificationSettings.filter(
-                          (item) => item !== e.target.value
-                        )
-                      );
-                    }
-                  }}
-                  // checked={userData?.strains.includes(i.strain.id)}
+                  checked={notificationSettings.includes(i.strain.id)}
+                  onChange={e => handleChange(i.strain.id, e.target.checked)}
                 />
                 <label>{i.strain.name}</label>
               </div>
             ))}
           </ul>
-          {/* enroll button */}
           <Button
             colorScheme="blue"
-            onClick={handleEnrollUser}
+            onClick={handleEnrollOrUpdate}
             leftIcon={<GrUpdate />}
             variant="solid"
             className="mt-2"
           >
-            Enroll
+            {isUserEnrolled ? "Update" : "Enroll"}
           </Button>
         </div>
       )}
 
-      {/* list of all dispensary strains, if available, text green, if not, text red  */}
+      {/* Display list of all dispensary strains */}
       <h2 className="text-xl font-bold mt-6">Strains:</h2>
       <ul className="list-disc list-inside">
-        {strains?.map((i) => (
-          <li key={i.strain.id} className=" list-none my-2">
+        {strains?.map(i => (
+          <li key={i.strain.id} className="list-none my-2">
             <div>
-              {(i.available ? "✅ " : "⏰ ") +
-                i.strain.name +
-                " (" +
-                i.strain.grower +
-                ") - "}
-              {/* display last available time MM-DD-YY */}
-              {i.available && (
-                <span className="text-green-500">
-                  Dropped {new Date(i.availableDate).toLocaleDateString()}
-                </span>
-              )}
-              {/* display last unavailable time MM-DD-YY */}
-              {!i.available && (
-                <span className="text-red-500">
-                  Last Seen {new Date(i.availableDate).toLocaleDateString()}
-                </span>
-              )}
+              {(i.available ? "✅ " : "⏰ ") + i.strain.name + " (" + i.strain.grower + ") - "}
+              <span className={i.available ? "text-green-500" : "text-red-500"}>
+                {i.available ? "Dropped " : "Last Seen "}
+                {new Date(i.availableDate).toLocaleDateString()}
+              </span>
             </div>
           </li>
         ))}
