@@ -26,6 +26,9 @@ import enrollUser from "@wasp/actions/enrollUser";
 
 export function DispensaryPage() {
   const { dispensaryName } = useParams();
+  useEffect(() => {
+    document.title = 'TerpText - ' + dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1);
+  }, []);
   const { data: user } = useAuth();
   const enrollUserFn = useAction(enrollUser);
   const toast = useToast();

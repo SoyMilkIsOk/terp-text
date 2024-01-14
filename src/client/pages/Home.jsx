@@ -16,8 +16,12 @@ import {
   Tooltip,
   Container,
 } from "@chakra-ui/react";
+import { useEffect } from "react";
 
 export const Home = () => {
+  useEffect(() => {
+    document.title = 'TerpText - Home';
+  }, []);
   const { data: user } = useAuth();
   const { data: dispensaries } = useQuery(getAllDispensaries);
 

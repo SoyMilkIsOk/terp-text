@@ -31,6 +31,9 @@ import { MdOutlineSms } from "react-icons/md";
 export function DispensaryDashboard() {
   const toast = useToast();
   const { dispensaryName } = useParams();
+  useEffect(() => {
+    document.title = 'TerpText - ' + dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1) + ' - Dashboard';
+  }, []);
   const { data: strains, refetch } = useQuery(getStrains, {
     name: dispensaryName,
   });
