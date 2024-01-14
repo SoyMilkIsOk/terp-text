@@ -4,11 +4,6 @@ export const getDispensary = async ({ name }, context) => {
   const dispensary = await context.entities.Dispensary.findUnique({
     where: { name },
     include: {
-      users: {
-        include: {
-          user: true,
-        },
-      },
       strains: {
         include: {
           strain: true,
@@ -26,11 +21,6 @@ export const getDispensary = async ({ name }, context) => {
 export const getAllDispensaries = async (args, context) => {
   const dispensaries = await context.entities.Dispensary.findMany({
     include: {
-      users: {
-        include: {
-          user: true,
-        },
-      },
       strains: {
         include: {
           strain: true,

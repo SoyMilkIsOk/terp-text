@@ -13,7 +13,8 @@ import {
   Tr,
   Th,
   Td,
-  Checkbox
+  Checkbox,
+  Container,
 } from "@chakra-ui/react";
 import { IoMdLogIn } from "react-icons/io";
 import { RxUpdate } from "react-icons/rx";
@@ -83,79 +84,103 @@ export function DispensaryPage() {
     );
   };
 
-
   if (dispensaryLoading) return <Box>Loading...</Box>;
   if (dispensaryError) return <Box>Error: {dispensaryError}</Box>;
 
   const isUserEnrolled = dispensary.userStrains.some(
     (us) => us.userId === user?.id
   );
+
   const strains = dispensary?.strains;
 
   return (
-    <Box p={4}>
-      <Heading as="h1" size="xl" mb={4}>
-        {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
-        {isUserEnrolled && (
-          <Tooltip
-            label="User is enrolled in notifications from this dispensary"
-            aria-label="A tooltip"
-            placement="right"
-            hasArrow
-          >
-            <span> ✅</span>
-          </Tooltip>
-        )}
-      </Heading>
+    <Container maxW="max-content">
+      <Box p={4}>
+        <Heading as="h1" size="xl" mb={4}>
+          {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
+          {isUserEnrolled && (
+            <Tooltip
+              label="User is enrolled in notifications from this dispensary"
+              aria-label="A tooltip"
+              placement="right"
+              hasArrow
+            >
+              <span> ✅</span>
+            </Tooltip>
+          )}
+        </Heading>
 
-      {!user ? (
-        <Stack direction="row" spacing={4}>
-          <Link to="/login">
-            <Button leftIcon={<IoMdLogIn />} colorScheme="blue">
-              Login
-            </Button>
-          </Link>
-        </Stack>
-      ) : (
-        <Box mt={4}>
-          <Heading as="h2" size="lg" mb={2}>Strain Notifications:</Heading>
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Strain</Th>
-                <Th>Grower</Th>
-                <Th>Status</Th>
-                <Th>Last Availble</Th>
-                <Th isNumeric>Notification</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {strains?.map((i) => (
-                <Tr key={i.strain.id}>
-                  <Td>{i.strain.name}</Td>
-                  <Td>{i.strain.grower}</Td>
-                  <Td>{i.available ? "✅ Available" : "⏰ Unavailable"}</Td>
-                  <Td>{new Date(i.availableDate).toLocaleDateString("en-US")}</Td>
-                  <Td isNumeric>
-                    <Checkbox
-                      isChecked={notificationSettings.includes(i.strain.id)}
-                      onChange={(e) => handleChange(i.strain.id, e.target.checked)}
-                    />
-                  </Td>
+        {!user ? (
+          <Stack direction="row" spacing={4}>
+            <Link to="/login">
+              <Button leftIcon={<IoMdLogIn />} colorScheme="blue">
+                Login
+              </Button>
+            </Link>
+          </Stack>
+        ) : (
+          <Box mt={4}>
+            <Heading as="h2" size="lg" mb={2}>
+              Strain Notifications:
+            </Heading>
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Strain</Th>
+                  <Th>Grower</Th>
+                  <Th>Status</Th>
+                  <Th>Last Availble</Th>
+                  <Th isNumeric>Notification</Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
-          <Button
-            colorScheme="blue"
-            onClick={handleEnrollOrUpdate}
-            leftIcon={<RxUpdate />}
-            mt={2}
-          >
-            {isUserEnrolled ? "Update" : "Enroll"}
-          </Button>
-        </Box>
-      )}
-    </Box>
+              </Thead>
+              <Tbody>
+                {strains?.map((i) => (
+                  <Tr key={i.strain.id}>
+                    <Td>{i.strain.name}</Td>
+                    <Td>{i.strain.grower}</Td>
+                    <Td>
+                      <Tooltip
+                        label={
+                          i.available
+                            ? "Currently Available"
+                            : "Currently Unavailable"
+                        }
+                        aria-label="A tooltip"
+                        placement="right"
+                        hasArrow
+                      >
+                        <span className="ml-4">
+                          {i.available ? "✅" : "⏰"}
+                        </span>
+                      </Tooltip>
+                    </Td>
+                    <Td>
+                      {new Date(i.availableDate).toLocaleDateString("en-US")}
+                    </Td>
+                    <Td isNumeric>
+                      <Checkbox
+                        className="mr-10"
+                        isChecked={notificationSettings.includes(i.strain.id)}
+                        onChange={(e) =>
+                          handleChange(i.strain.id, e.target.checked)
+                        }
+                      />
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+            <Button
+              colorScheme="blue"
+              onClick={handleEnrollOrUpdate}
+              leftIcon={<RxUpdate />}
+              mt={4}
+            >
+              {isUserEnrolled ? "Update" : "Enroll"}
+            </Button>
+          </Box>
+        )}
+      </Box>
+    </Container>
   );
 }

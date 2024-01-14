@@ -13,6 +13,8 @@ import {
   Th,
   Td,
   Link as ChakraLink,
+  Tooltip,
+  Container,
 } from "@chakra-ui/react";
 
 export const Home = () => {
@@ -23,15 +25,14 @@ export const Home = () => {
     if (!dispensary.userStrains || !Array.isArray(dispensary.userStrains)) {
       return 0; // Return 0 if userStrains is not defined or not an array
     }
-  
+
     const uniqueUserIds = new Set();
-    console.log(dispensary.userStrains);
-    dispensary.userStrains.forEach(us => {
+    dispensary.userStrains.forEach((us) => {
       if (us.userId) {
         uniqueUserIds.add(us.userId);
       }
     });
-  
+
     return uniqueUserIds.size;
   };
 
@@ -49,43 +50,60 @@ export const Home = () => {
   };
 
   return (
-    <Box p={4}>
-      <Heading as="h1" mb={4}>
-        All Dispensaries
-      </Heading>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Dispensary Name</Th>
-            <Th>Number of Strains</Th>
-            <Th>Number of Users</Th>
-            <Th>Last Available Drop Date</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {dispensaries?.map((dispensary) => (
-            <Tr key={dispensary.id}>
-              <Td>
-                <ChakraLink
-                  as={Link}
-                  to={`/${dispensary.name}`}
-                  color="blue.500"
-                >
-                  {dispensary.name.charAt(0).toUpperCase() +
-                    dispensary.name.slice(1)}
-                </ChakraLink>
-              </Td>
-              <Td>
-                {Array.isArray(dispensary.strains)
-                  ? dispensary.strains.length
-                  : "N/A"}
-              </Td>
-              <Td>{getTotalUsers(dispensary)}</Td>
-              <Td>{getLastAvailableDropDate(dispensary)}</Td>
+    <Container minW="max-content">
+      <Box p={4}>
+        <Heading as="h1" mb={4}>
+          All Dispensaries
+        </Heading>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Dispensary Name</Th>
+              <Th>Number of Strains</Th>
+              <Th>Number of Users</Th>
+              <Th>Last Drop Date</Th>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </Box>
+          </Thead>
+          <Tbody>
+            {dispensaries?.map((dispensary) => (
+              <Tr key={dispensary.id}>
+                <Td>
+                  <ChakraLink
+                    as={Link}
+                    to={`/${dispensary.name}`}
+                    color="blue.500"
+                  >
+                    <Box display="flex" alignItems="center gap-2">
+                      {dispensary.name.charAt(0).toUpperCase() +
+                        dispensary.name.slice(1)}
+                      {/* ✅ if user is signed up */}
+                      {dispensary.userStrains.some(
+                        (us) => us.userId === user?.id
+                      ) && (
+                        <Tooltip
+                          label="You are enrolled in notifications from this dispensary"
+                          aria-label="A tooltip"
+                          placement="right"
+                          hasArrow
+                        >
+                          <span className="ml-2"> ✅</span>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </ChakraLink>
+                </Td>
+                <Td>
+                  {Array.isArray(dispensary.strains)
+                    ? dispensary.strains.length
+                    : "N/A"}
+                </Td>
+                <Td>{getTotalUsers(dispensary)}</Td>
+                <Td>{getLastAvailableDropDate(dispensary)}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </Box>
+    </Container>
   );
 };

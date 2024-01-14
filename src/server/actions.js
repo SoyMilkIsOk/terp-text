@@ -145,3 +145,31 @@ export const deleteStrain = async (args, context) => {
   return strain;
 }
 
+export const updateStrainAvailability = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to update a strain");
+  }
+
+  const { strainName, dispensaryName, available } = args;
+
+  const dispensary = await context.entities.Dispensary.findUnique({
+    where: { name: dispensaryName },
+  });
+
+  if (!dispensary) {
+    throw new HttpError(404, "No dispensary with name " + dispensaryName);
+  }
+
+  const strain = await context.entities.DispensaryStrain.updateMany({
+    where: {
+      strainName,
+      dispensaryName,
+    },
+    data: {
+      available,
+    },
+  });  
+
+  return strain;
+}
+

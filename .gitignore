@@ -9,3 +9,5 @@
 # or modify/delete these two lines.
 *.env
 *.env.*
+
+*.DS_Store
