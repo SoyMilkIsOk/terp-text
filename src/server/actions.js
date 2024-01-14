@@ -90,36 +90,58 @@ export const enrollUser = async (args, context) => {
 
 };
 
-export const sendNotification = async ({ dispensaryId, strainId }, context) => {
+export const addStrain = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to add a strain");
+  }
+
+  const { name, dispensaryName } = args;
+
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { id: dispensaryId },
+    where: { name: dispensaryName },
   });
 
-  const strain = await context.entities.Strain.findUnique({
-    where: { id: strainId },
-  });
+  if (!dispensary) {
+    throw new HttpError(404, "No dispensary with name " + dispensaryName);
+  }
 
-  const users = await context.entities.User.findMany({
-    where: {
-      userStrains: {
-        some: {
-          strainId: strainId,
-          dispensaryId: dispensaryId,
-        },
-      },
+  const strain = await context.entities.DispensaryStrain.create({
+    data: {
+      name,
+      dispensaryName,
     },
   });
 
-  const notificationPromises = users.map(async (user) => {
-    // Send notification to user
-    // ... replace with real implementation
-    return sendTextNotification(
-      user.phoneNumber,
-      `New strain ${strain.name} available at ${dispensary.name}`
-    );
+  return strain;
+}
+
+export const deleteStrain = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to delete a strain");
+  }
+
+  const { strainName, dispensaryName } = args;
+
+  console.log("name", strainName);
+  console.log("dispensaryName", dispensaryName);
+  const name = dispensaryName;
+
+  const dispensary = await context.entities.Dispensary.findUnique({
+    where: { name },
+
   });
 
-  await Promise.all(notificationPromises);
+  if (!dispensary) {
+    throw new HttpError(404, "No dispensary with name " + dispensaryName);
+  }
 
-  return "Notifications sent";
-};
+  const strain = await context.entities.DispensaryStrain.deleteMany({
+    where: {
+      strainName,
+      dispensaryName,
+    },
+  });
+
+  return strain;
+}
+

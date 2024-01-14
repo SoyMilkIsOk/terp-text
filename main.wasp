@@ -23,6 +23,8 @@ app TerpText {
   }
 }
 
+/////// AUTH ///////
+
 route LoginRoute { path: "/login", to: LoginPage }
 page LoginPage {
   component: import Login from "@client/pages/auth/Login.jsx"
@@ -31,6 +33,8 @@ route SignupRoute { path: "/signup", to: SignupPage }
 page SignupPage {
   component: import Signup from "@client/pages/auth/Signup.jsx"
 }
+
+/////// ENTITIES ///////
 
 entity User {=psl
     id           Int          @id @default(autoincrement())
@@ -87,15 +91,24 @@ entity DispensaryUser {=psl
     userId         Int
 psl=}
 
+/////// ACTIONS ///////
+
 action enrollUser {
   fn: import { enrollUser } from "@server/actions.js",
   entities: [UserStrain, User, DispensaryUser]
 }
 
-action sendNotification {
-  fn: import { sendNotification } from "@server/actions.js",
-  entities: [User, Dispensary, Strain]
+action addStrain {
+  fn: import { addStrain } from "@server/actions.js",
+  entities: [Strain, DispensaryStrain, Dispensary]
 }
+
+action deleteStrain {
+  fn: import { deleteStrain } from "@server/actions.js",
+  entities: [Strain, DispensaryStrain, Dispensary]
+}
+
+/////// QUERIES ///////
 
 query getDispensary {
   fn: import { getDispensary } from "@server/queries.js",
@@ -104,7 +117,7 @@ query getDispensary {
 
 query getStrains {
   fn: import { getStrains } from "@server/queries.js",
-  entities: [Strain]
+  entities: [Strain, Dispensary, DispensaryStrain]
 }
 
 query getUser {
@@ -116,6 +129,8 @@ query getAllDispensaries {
   fn: import { getAllDispensaries } from "@server/queries.js",
   entities: [Dispensary]
 }
+
+/////// ROUTES ///////
 
 route HomeRoute { path: "/", to: HomePage }
 
@@ -129,4 +144,11 @@ route DispensaryRoute { path: "/:dispensaryName", to: DispensaryPage }
 page DispensaryPage {
   component: import { DispensaryPage } from "@client/pages/Dispensary.jsx",
   authRequired: false
+}
+
+route DispensaryDashboardRoute { path: "/:dispensaryName/dashboard", to: DispensaryDashboardPage }  
+
+page DispensaryDashboardPage {
+  component: import { DispensaryDashboard } from "@client/pages/DispensaryDashboard.jsx",
+  authRequired: true
 }
