@@ -36,6 +36,7 @@ export const getAllDispensaries = async (args, context) => {
           strain: true,
         },
       },
+      userStrains: true,
     },
   });
 
@@ -56,7 +57,7 @@ export const getStrains = async ({ name }, context) => {
       },
     },
   });
-  
+
   return dispensary.strains;
 };
 
