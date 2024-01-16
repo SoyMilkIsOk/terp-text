@@ -6,6 +6,7 @@ import { ChakraProvider, Tooltip } from "@chakra-ui/react";
 import { Button, useToast } from "@chakra-ui/react";
 import terptextLogo from "/images/terptext-logo.png";
 import { TbLogout, TbLogin } from "react-icons/tb";
+import { FaRegUserCircle } from "react-icons/fa";
 
 export const App = ({ children }) => {
   const { data: user } = useAuth();
@@ -26,16 +27,25 @@ export const App = ({ children }) => {
             </Link>
             {user ? (
               <span className="mt-2">
-                Hi, <span className="font-bold"> {user.username} </span>
+                <Tooltip label="Your profile" aria-label="Your profile">
+                  <Button
+                    to={user.username + "/profile"}
+                    as={Link}
+                    colorScheme="blue"
+                    size={"md"}
+                  >
+                    <FaRegUserCircle />
+                  </Button>
+                </Tooltip>
                 <Tooltip label="Log out" aria-label="Log out">
-                <Button
-                  onClick={logout}
-                  colorScheme="red"
-                  size={"md"}
-                  className="ml-2"
-                >
-                  <TbLogout />
-                </Button>
+                  <Button
+                    onClick={logout}
+                    colorScheme="red"
+                    size={"md"}
+                    className="ml-2"
+                  >
+                    <TbLogout />
+                  </Button>
                 </Tooltip>
               </span>
             ) : (

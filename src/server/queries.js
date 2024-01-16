@@ -51,22 +51,18 @@ export const getStrains = async ({ name }, context) => {
   return dispensary.strains;
 };
 
-export const getUser = async ({ id }, context) => {
+export const getUser = async ({ username }, context) => {
   if (!context.user) {
     throw new HttpError(401);
   }
 
   const user = await context.entities.User.findUnique({
-    where: { id },
+    where: { username },
     include: {
-      dispensaries: {
-        include: {
-          dispensary: true,
-        },
-      },
       strains: {
         include: {
           strain: true,
+          dispensary: true,
         },
       },
     },

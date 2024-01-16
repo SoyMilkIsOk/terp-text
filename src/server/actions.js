@@ -172,4 +172,3 @@ export const updateStrainAvailability = async (args, context) => {
 
   return strain;
 }
-

@@ -13,69 +13,52 @@ import {
   Heading,
   Spacer,
   Container,
+  Center,
 } from "@chakra-ui/react";
 import { useQuery } from "@wasp/queries";
 import { useAction } from "@wasp/actions";
 import getStrains from "@wasp/queries/getStrains";
-import addStrain from "@wasp/actions/addStrain";
 import deleteStrain from "@wasp/actions/deleteStrain";
 import { useParams } from "react-router-dom";
 import updateStrainAvailability from "@wasp/actions/updateStrainAvailability";
-// import sendText from "@wasp/actions/sendText";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { FaRegListAlt } from "react-icons/fa";
 import { FaLock } from "react-icons/fa";
 import { MdOutlineSms } from "react-icons/md";
+import { FaCirclePlus } from "react-icons/fa6";
+import Modal from 'react-modal';
+import AddStrainModal from "./AddStrainModal";
+
+Modal.setAppElement('#root');
 
 export function DispensaryDashboard() {
   const toast = useToast();
   const { dispensaryName } = useParams();
   useEffect(() => {
-    document.title = 'TerpText - ' + dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1) + ' - Dashboard';
+    document.title =
+      "TerpText - " +
+      dispensaryName.charAt(0).toUpperCase() +
+      dispensaryName.slice(1) +
+      " - Dashboard";
   }, []);
   const { data: strains, refetch } = useQuery(getStrains, {
     name: dispensaryName,
   });
-  const [newStrainName, setNewStrainName] = useState("");
+  const [modalIsOpen, setIsOpen] = useState(false);
 
   // Define action hooks
-  const addStrainAction = useAction(addStrain);
   const deleteStrainAction = useAction(deleteStrain);
   // const sendTextAction = useAction(sendText);
 
-  const handleAddStrain = async () => {
-    if (!newStrainName.trim()) {
-      toast({
-        title: "Error",
-        description: "Strain name can't be empty",
-        status: "error",
-        duration: 1000,
-        isClosable: true,
-      });
-      return;
-    }
-    try {
-      await addStrainAction({ name: newStrainName, dispensaryName });
-      setNewStrainName("");
-      refetch();
-      toast({
-        title: "Success",
-        description: "Strain added successfully",
-        status: "success",
-        duration: 1000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `An error occurred: ${error.message}`,
-        status: "error",
-        duration: 1000,
-        isClosable: true,
-      });
-    }
-  };
+  //open add strain modal
+  function handleAddStrain() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
 
   const handleDeleteStrain = async (strainName) => {
     try {
@@ -249,6 +232,17 @@ export function DispensaryDashboard() {
             ))}
           </Tbody>
         </Table>
+        <Center>
+          <Button
+            leftIcon={<FaCirclePlus />}
+            colorScheme="blue"
+            onClick={handleAddStrain}
+            mt={4}
+          >
+            Add Strain
+          </Button>
+        </Center>
+              <AddStrainModal modalIsOpen={modalIsOpen} closeModal={closeModal} dispensaryName={dispensaryName} />
       </Box>
     </Container>
   );
