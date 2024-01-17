@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Button,
-  Stack,
   Box,
   Heading,
   useToast,
@@ -13,24 +12,29 @@ import {
   Tr,
   Th,
   Td,
-  Checkbox,
+  Switch,
   Container,
+  Flex,
+  Spacer,
+  Center,
 } from "@chakra-ui/react";
-import { IoMdLogIn } from "react-icons/io";
-import { RxUpdate } from "react-icons/rx";
+import { IoIosSettings } from "react-icons/io";
 import useAuth from "@wasp/auth/useAuth";
 import { useQuery } from "@wasp/queries";
 import { useAction } from "@wasp/actions";
 import getDispensary from "@wasp/queries/getDispensary";
-import enrollUser from "@wasp/actions/enrollUser";
+import createUserStrain from "@wasp/actions/createUserStrain"; // Assuming this action is implemented
+import deleteUserStrain from "@wasp/actions/deleteUserStrain"; // Assuming this action is implemented
 
 export function DispensaryPage() {
   const { dispensaryName } = useParams();
   useEffect(() => {
-    document.title = 'TerpText - ' + dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1);
+    document.title =
+      "TerpText - " +
+      dispensaryName.charAt(0).toUpperCase() +
+      dispensaryName.slice(1);
   }, []);
   const { data: user } = useAuth();
-  const enrollUserFn = useAction(enrollUser);
   const toast = useToast();
 
   const {
@@ -39,88 +43,78 @@ export function DispensaryPage() {
     error: dispensaryError,
   } = useQuery(getDispensary, { name: dispensaryName });
 
-  const [notificationSettings, setNotificationSettings] = useState([]);
+  const createUserStrainFn = useAction(createUserStrain);
+  const deleteUserStrainFn = useAction(deleteUserStrain);
+
+  const [notificationSettings, setNotificationSettings] = useState(new Map());
 
   useEffect(() => {
     if (dispensary && user) {
-      const userSubscriptions = dispensary.userStrains
-        .filter((us) => us.userId === user.id)
-        .map((us) => us.strainId);
+      const userSubscriptions = new Map(
+        dispensary.userStrains
+          .filter((us) => us.userId === user.id)
+          .map((us) => [us.strainId, true])
+      );
       setNotificationSettings(userSubscriptions);
     }
   }, [dispensary, user]);
 
-  const handleEnrollOrUpdate = () => {
-    const actionType =
-      notificationSettings.length === 0 && !isUserEnrolled
-        ? "Enroll"
-        : "Update";
-    enrollUserFn({
-      dispensaryName,
-      notificationSettings,
-      update: actionType === "Update",
-    })
-      .then(() =>
-        toast({
-          title: `${actionType} Successful!`,
-          status: "success",
-          duration: 1000,
-          isClosable: true,
-        })
-      )
-      .catch((err) =>
-        toast({
-          title: "Error",
-          description: `Error: ${err.message}`,
-          status: "error",
-          duration: 1000,
-          isClosable: true,
-        })
-      );
-  };
-
-  const handleChange = (strainId, isChecked) => {
+  const handleChange = async (strainId, isChecked) => {
     setNotificationSettings((prevSettings) =>
-      isChecked
-        ? [...prevSettings, strainId]
-        : prevSettings.filter((id) => id !== strainId)
+      new Map(prevSettings).set(strainId, isChecked)
     );
+    try {
+      if (isChecked) {
+        await createUserStrainFn({ strainId, dispensaryName });
+      } else {
+        await deleteUserStrainFn({ strainId, dispensaryName });
+      }
+      toast({
+        title: isChecked ? "Subscribed" : "Unsubscribed",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: `Error: ${err.message}`,
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+      });
+    }
   };
 
   if (dispensaryLoading) return <Box>Loading...</Box>;
   if (dispensaryError) return <Box>Error: {dispensaryError}</Box>;
-
-  const isUserEnrolled = dispensary.userStrains.some(
-    (us) => us.userId === user?.id
-  );
 
   const strains = dispensary?.strains;
 
   return (
     <Container maxW="max-content">
       <Box p={4}>
-        <Heading as="h1" size="xl" mb={4}>
-          {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
-          {isUserEnrolled && (
-            <Tooltip
-              label="User is enrolled in notifications from this dispensary"
-              aria-label="A tooltip"
-              placement="right"
-              hasArrow
-            >
-              <span> ✅</span>
-            </Tooltip>
+        <Flex>
+          <Heading as="h1" size="xl" mb={4}>
+            {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
+          </Heading>
+          <Spacer />
+          {user?.username === dispensaryName && (
+            <Button
+              as={Link}
+              to={"/" + dispensaryName + "/dashboard"}
+              colorScheme="blue"
+              size="md"
+              >
+              <IoIosSettings />
+            </Button>
           )}
-        </Heading>
-
+        </Flex>
+    
         {!user ? (
-          <Stack direction="row" spacing={4}>
-            <Link to="/login">
-              <Button leftIcon={<IoMdLogIn />} colorScheme="blue">
-                Login
-              </Button>
-            </Link>
-          </Stack>
+          <Center>
+            <Box>Please log in to manage your notifications.</Box>
+          </Center>
         ) : (
           <Box mt={4}>
             <Heading as="h2" size="lg" mb={2}>
@@ -132,7 +126,7 @@ export function DispensaryPage() {
                   <Th>Strain</Th>
                   <Th>Grower</Th>
                   <Th>Status</Th>
-                  <Th>Last Availble</Th>
+                  <Th>Last Available</Th>
                   <Th isNumeric>Notification</Th>
                 </Tr>
               </Thead>
@@ -161,9 +155,9 @@ export function DispensaryPage() {
                       {new Date(i.availableDate).toLocaleDateString("en-US")}
                     </Td>
                     <Td isNumeric>
-                      <Checkbox
-                        className="mr-10"
-                        isChecked={notificationSettings.includes(i.strain.id)}
+                      <Switch
+                        mr={7}
+                        isChecked={notificationSettings.get(i.strain.id)}
                         onChange={(e) =>
                           handleChange(i.strain.id, e.target.checked)
                         }
@@ -173,17 +167,9 @@ export function DispensaryPage() {
                 ))}
               </Tbody>
             </Table>
-            <Button
-              colorScheme="blue"
-              onClick={handleEnrollOrUpdate}
-              leftIcon={<RxUpdate />}
-              mt={4}
-            >
-              {isUserEnrolled ? "Update" : "Enroll"}
-            </Button>
           </Box>
         )}
       </Box>
     </Container>
   );
-}
+}    

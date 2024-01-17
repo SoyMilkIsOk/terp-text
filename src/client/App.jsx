@@ -2,7 +2,12 @@ import { Link } from "react-router-dom";
 import useAuth from "@wasp/auth/useAuth";
 import logout from "@wasp/auth/logout";
 import "./Main.css";
-import { ChakraProvider, Tooltip } from "@chakra-ui/react";
+import {
+  ChakraProvider,
+  Tooltip,
+  Stack,
+  Link as ChakraLink,
+} from "@chakra-ui/react";
 import { Button, useToast } from "@chakra-ui/react";
 import terptextLogo from "/images/terptext-logo.png";
 import { TbLogout, TbLogin } from "react-icons/tb";
@@ -29,7 +34,7 @@ export const App = ({ children }) => {
               <span className="mt-2">
                 <Tooltip label="Your profile" aria-label="Your profile">
                   <Button
-                    to={user.username + "/profile"}
+                    to={"/" + user.username + "/profile"}
                     as={Link}
                     colorScheme="blue"
                     size={"md"}
@@ -49,15 +54,25 @@ export const App = ({ children }) => {
                 </Tooltip>
               </span>
             ) : (
-              <Button
-                rightIcon={<TbLogin />}
-                as={Link}
-                to="/login"
-                colorScheme="blue"
-                size={"md"}
-              >
-                Log in
-              </Button>
+              <Stack direction="row" spacing={4}>
+                <ChakraLink
+                  as={Link}
+                  fontWeight={"bold"}
+                  to="/login"
+                  className="mt-2"
+                >
+                  Log in
+                </ChakraLink>
+                <Button
+                  as={Link}
+                  to="/signup"
+                  colorScheme="blue"
+                  size={"md"}
+                  fontWeight={"bold"}
+                >
+                  Sign up
+                </Button>
+              </Stack>
             )}
           </div>
         </header>

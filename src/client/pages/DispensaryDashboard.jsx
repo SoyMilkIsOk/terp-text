@@ -14,6 +14,7 @@ import {
   Spacer,
   Container,
   Center,
+  Flex,
 } from "@chakra-ui/react";
 import { useQuery } from "@wasp/queries";
 import { useAction } from "@wasp/actions";
@@ -148,7 +149,7 @@ export function DispensaryDashboard() {
   }
 
   return (
-    <Container minW="max-content">
+    <Container minW="min-content">
       <Box p={4}>
         {/* <Box mb={4}>
         <Input
@@ -163,7 +164,7 @@ export function DispensaryDashboard() {
 
         {/* Title Your Strains */}
         <Box mb={4} display="flex">
-          <Box ml={4}>
+          <Box>
             <Heading as="h2" size="lg" mb={2}>
               {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
               's Strains:
@@ -182,10 +183,10 @@ export function DispensaryDashboard() {
           <Thead>
             <Tr>
               <Th>
-                Strain Name <FaLock className="inline ml-1 mb-1" />
+                <Flex>Name <FaLock className="inline ml-1 mt-0.5" /></Flex>
               </Th>
               <Th>
-                Grower <FaLock className="inline ml-1 mb-1" />
+                <Flex> Grower <FaLock className="inline ml-1 mt-0.5" /> </Flex>
               </Th>
               <Th>Last Available</Th>
               <Th>Availablity</Th>

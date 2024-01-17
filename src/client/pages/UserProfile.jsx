@@ -11,46 +11,40 @@ import {
   Button,
   Input,
   useToast,
-  Checkbox,
+  Switch,
   Flex,
   Spacer,
   FormControl,
   FormLabel,
+  Center,
   Container,
   Link as ChakraLink,
 } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+import { FaRegSave } from "react-icons/fa";
+import { FaRegCircleXmark } from "react-icons/fa6";
 import useAuth from "@wasp/auth/useAuth";
 import { useQuery } from "@wasp/queries";
-import { useAction } from "@wasp/actions";
 import getUser from "@wasp/queries/getUser";
-import enrollUser from "@wasp/actions/enrollUser";
-import { RxUpdate } from "react-icons/rx";
-import { FaRegCircleXmark } from "react-icons/fa6";
-import { FaRegSave } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import updatePhone from "@wasp/actions/updatePhone"; // Assume this action is implemented
+import unsubscribeFromTexts from "@wasp/actions/unsubscribeFromTexts"; // Assume this action is implemented
+import createUserDispensary from "@wasp/actions/createUserDispensary"; // Assume this action is implemented
+import deleteUserDispensary from "@wasp/actions/deleteUserDispensary"; // Assume this action is implemented
 
 export const UserProfile = () => {
   const { data: user } = useAuth();
   const toast = useToast();
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phone, setPhone] = useState("");
   const [dispensaries, setDispensaries] = useState([]);
   const { data: userProfile, refetch } = useQuery(getUser, {
     username: user?.username,
   });
 
-  //   // extract unique dispensaries from userProfile.strains.dispensary
-  // setDispensaries(userProfile?.strains
-  //     .map((s) => s.dispensary)
-  //     .filter((v, i, a) => a.indexOf(v) === i));
-
   useEffect(() => {
-    setPhoneNumber(user?.phone || "");
-    // Fetch strain notifications (this function needs to be implemented)
+    setPhone(user?.phone || "");
     setDispensaries(
-      // extract unique
       userProfile?.strains
         .map((s) => s.dispensary)
-        // filter to remove duplicate dispensary.name entries (check to see if name is already in array)
         .filter((v, i, a) => a.findIndex((t) => t.name === v.name) === i)
         .map((d) => ({ ...d, enabled: true }))
     );
@@ -58,8 +52,7 @@ export const UserProfile = () => {
 
   const handlePhoneUpdate = async () => {
     try {
-      // Update phone number action (needs to be implemented)
-      await updatePhoneNumber({ phoneNumber });
+      await updatePhone({ phone });
       toast({ title: "Phone number updated", status: "success" });
     } catch (error) {
       toast({ title: "Error updating phone number", status: "error" });
@@ -68,7 +61,6 @@ export const UserProfile = () => {
 
   const handleUnsubscribe = async () => {
     try {
-      // Unsubscribe action (needs to be implemented)
       await unsubscribeFromTexts();
       toast({ title: "Unsubscribed from all texts", status: "success" });
     } catch (error) {
@@ -76,38 +68,55 @@ export const UserProfile = () => {
     }
   };
 
+  const handleDispensaryChange = async (dispensaryName, isChecked) => {
+    try {
+      if (isChecked) {
+        await createUserDispensary({ dispensaryName });
+      } else {
+        await deleteUserDispensary({ dispensaryName });
+      }
+      toast({
+        title: isChecked ? "Subscribed" : "Unsubscribed",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+      });
+      setDispensaries((prevSettings) =>
+        prevSettings.map((d) =>
+          d.name === dispensaryName ? { ...d, enabled: isChecked } : d
+        )
+      );
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: `Error: ${err.message}`,
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (!user) {
-    return <Box>You need to be logged in to view this page</Box>;
+    return <Box>You need to be logged in to view this page.</Box>;
   }
 
   if (!userProfile) {
     return <Box>Loading...</Box>;
   }
 
-  const handleDispensaryChange = (dispensaryName, isChecked) => {
-    //     setDispensaries(prevSettings =>
-    // //
-    //     );
-  };
-
-  const handleUpdateNotifications = async () => {
-    //
-  };
-
   return (
     <Container maxW="max-content">
       <Box p={4}>
         <Heading as="h1" mb={4}>
-          {" "}
-          User Profile{" "}
+          User Profile
         </Heading>
         <FormControl>
           <FormLabel>Update Phone Number</FormLabel>
           <Flex>
             <Input
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Phone Number"
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder={user.phone || "Phone Number"}
               maxW={"max-content"}
             />
             <Button
@@ -130,7 +139,14 @@ export const UserProfile = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {console.log("dispensaries", dispensaries)}
+              {(!dispensaries || !dispensaries.length) && (
+                <Tr>
+                  <Td colSpan={2}>
+                    {" "}
+                    <Center>No notifications set up. </Center>
+                  </Td>
+                </Tr>
+              )}
               {dispensaries?.map((dispensary) => (
                 <Tr key={dispensary.name}>
                   <Td>
@@ -144,7 +160,7 @@ export const UserProfile = () => {
                     </ChakraLink>
                   </Td>
                   <Td isNumeric>
-                    <Checkbox
+                    <Switch
                       isChecked={dispensary.enabled}
                       onChange={(e) =>
                         handleDispensaryChange(
@@ -158,23 +174,16 @@ export const UserProfile = () => {
               ))}
             </Tbody>
           </Table>
-          <Flex mt={4} display={"flex"} minW={"max-content"}>
-            <Button
-              leftIcon={<FaRegSave />}
-              colorScheme="blue"
-              onClick={handleUpdateNotifications}
-            >
-              Save
-            </Button>
-            <Spacer />
-            <Button
-              leftIcon={<FaRegCircleXmark />}
-              onClick={handleUnsubscribe}
-              colorScheme="red"
-              alignSelf={"flex-end"}
-            >
-              Unsubscribe All
-            </Button>
+          <Flex mt={4}>
+            {dispensaries?.length > 0 && (
+              <Button
+                leftIcon={<FaRegCircleXmark />}
+                onClick={handleUnsubscribe}
+                colorScheme="red"
+              >
+                Unsubscribe All
+              </Button>
+            )}
           </Flex>
         </FormControl>
       </Box>

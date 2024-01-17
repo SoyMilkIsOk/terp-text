@@ -84,11 +84,6 @@ psl=}
 
 /////// ACTIONS ///////
 
-action enrollUser {
-  fn: import { enrollUser } from "@server/actions.js",
-  entities: [UserStrain, User]
-}
-
 action addStrain {
   fn: import { addStrain } from "@server/actions.js",
   entities: [Strain, DispensaryStrain, Dispensary]
@@ -102,6 +97,36 @@ action deleteStrain {
 action updateStrainAvailability {
   fn: import { updateStrainAvailability } from "@server/actions.js",
   entities: [Dispensary, DispensaryStrain]
+}
+
+action deleteUserStrain {
+  fn: import { deleteUserStrain } from "@server/actions.js",
+  entities: [UserStrain]
+}
+
+action createUserStrain {
+  fn: import { createUserStrain } from "@server/actions.js",
+  entities: [UserStrain]
+}
+
+action deleteUserDispensary {
+  fn: import { deleteUserDispensary } from "@server/actions.js",
+  entities: [UserStrain]
+}
+
+action createUserDispensary {
+  fn: import { createUserDispensary } from "@server/actions.js",
+  entities: [UserStrain]
+}
+
+action unsubscribeFromTexts {
+  fn: import { unsubscribeFromTexts } from "@server/actions.js",
+  entities: [UserStrain]
+}
+
+action updatePhone {
+  fn: import { updatePhone } from "@server/actions.js",
+  entities: [User]
 }
 
 /////// QUERIES ///////

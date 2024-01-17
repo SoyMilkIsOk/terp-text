@@ -1,95 +1,6 @@
 import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
 
-export const enrollUser = async (args, context) => {
-  // simplified version of enrollUser that tries to add every notification setting to the user's strains, throws back errors if fails on any
-  if (!context.user) {
-    throw new HttpError(
-      401,
-      "Must be logged in to enroll in dispensary notifications"
-    );
-  }
-
-  const { dispensaryName, notificationSettings, update } = args;
-  const id = context.user.id;
-  var errorFlag = false;
-
-  // try adding all, throw error if any fail
-
-  console.log("notificationSettings", notificationSettings);
-
-  if (!update) {
-
-  for (let i = 0; i < notificationSettings.length; i++) {
-    try {
-      await context.entities.UserStrain.create({
-        data: {
-          userId: context.user.id,
-          strainId: parseInt(notificationSettings[i]),
-          dispensaryName,
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          console.log(
-            `UserStrain record with userId ${id} and strainId ${notificationSettings[i]} and dispensaryName ${dispensaryName} already exists.`
-          );
-        }
-        errorFlag = true;
-      }
-    }
-  }
-  // if (errorFlag) {
-  //   throw new HttpError(500, "Error adding some or all notification settings");
-  // }
-
-  } else {
-    // if update is set, delete all existing userStrains for this user that match the dispensaryName
-    // then add all new ones back that are in the notificationSettings array
-
-    try {
-      await context.entities.UserStrain.deleteMany({
-        where: {
-          userId: context.user.id,
-          dispensaryName,
-        },
-      });
-      console.log("Deleted userStrains for user", context.user.id, "dispensaryName", dispensaryName);
-    }
-    catch (e) {
-      console.log("Error deleting userStrains for user", context.user.id, "dispensaryName", dispensaryName);
-      errorFlag = true;
-    }
-
-    for (let i = 0; i < notificationSettings.length; i++) {
-      try {
-        await context.entities.UserStrain.create({
-          data: {
-            userId: context.user.id,
-            strainId: parseInt(notificationSettings[i]),
-            dispensaryName,
-          },
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            console.log(
-              `UserStrain record with userId ${id} and strainId ${notificationSettings[i]} and dispensaryName ${dispensaryName} already exists.`
-            );
-          }
-          errorFlag = true;
-        }
-      }
-    }
-  }
-
-  if (errorFlag) {
-    throw new HttpError(500, "Error adding some or all notification settings");
-  }
-
-};
-
 export const addStrain = async (args, context) => {
   if (!context.user) {
     throw new HttpError(401, "Must be logged in to add a strain");
@@ -171,4 +82,130 @@ export const updateStrainAvailability = async (args, context) => {
   });  
 
   return strain;
+}
+
+export const deleteUserStrain = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to delete a strain");
+  }
+
+  const { strainId, dispensaryName } = args;
+
+  const strain = await context.entities.UserStrain.deleteMany({
+    where: {
+      strainId,
+      userId: context.user.id,
+      dispensaryName,
+    },
+  });
+
+  return strain;
+}
+
+export const createUserStrain = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to add a strain");
+  }
+
+  const { strainId, dispensaryName } = args;
+
+  const strain = await context.entities.UserStrain.create({
+    data: {
+      userId: context.user.id,
+      strainId,
+      dispensaryName,
+    },
+  });
+
+  return strain;
+}
+
+export const deleteUserDispensary = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to delete a dispensary");
+  }
+
+  const { dispensaryName } = args;
+
+  const dispensary = await context.entities.UserStrain.deleteMany({
+    where: {
+      userId: context.user.id,
+      dispensaryName,
+    },
+  });
+
+  return dispensary;
+}
+
+export const createUserDispensary = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to add a dispensary");
+  }
+
+  const { dispensaryName } = args;
+
+  dispensary = await context.entities.Dispensary.findUnique({
+    where: { name: dispensaryName },
+  });
+
+  if (!dispensary) {
+    throw new HttpError(404, "No dispensary with name " + dispensaryName);
+  }
+
+  // for every strain at dispensary, add a userStrain for this user
+  for (let i = 0; i < dispensary.strains.length; i++) {
+    try {
+      await context.entities.UserStrain.create({
+        data: {
+          userId: context.user.id,
+          strainId: dispensary.strains[i].id,
+          dispensaryName,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          console.log(
+            `UserStrain record with userId ${id} and strainId ${notificationSettings[i]} and dispensaryName ${dispensaryName} already exists.`
+          );
+        }
+        errorFlag = true;
+      }
+    }
+  }
+
+  return dispensary;
+}
+
+export const unsubscribeFromTexts = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to unsubscribe from texts");
+  }
+
+  const user = await context.entities.UserStrain.deleteMany({
+    where: {
+      userId: context.user.id,
+    },
+  });
+
+  return user;
+}
+
+export const updatePhone = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to update phone");
+  }
+
+  const { phone } = args;
+
+  const user = await context.entities.User.update({
+    where: {
+      id: context.user.id,
+    },
+    data: {
+      phone,
+    },
+  });
+
+  return user;
 }
