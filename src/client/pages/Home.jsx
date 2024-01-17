@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import useAuth from "@wasp/auth/useAuth";
 import { useQuery } from "@wasp/queries";
 import getAllDispensaries from "@wasp/queries/getAllDispensaries";
+import getAllStrains from "@wasp/queries/getAllStrains";
 import {
   Box,
   Heading,
@@ -15,15 +16,17 @@ import {
   Link as ChakraLink,
   Tooltip,
   Container,
+  Center,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 
 export const Home = () => {
   useEffect(() => {
-    document.title = 'TerpText - Home';
+    document.title = "TerpText - Home";
   }, []);
   const { data: user } = useAuth();
   const { data: dispensaries } = useQuery(getAllDispensaries);
+  const { data: strains } = useQuery(getAllStrains);
 
   const getTotalUsers = (dispensary) => {
     if (!dispensary.userStrains || !Array.isArray(dispensary.userStrains)) {
@@ -40,7 +43,7 @@ export const Home = () => {
     return uniqueUserIds.size;
   };
 
-  const getLastAvailableDropDate = (dispensary) => {
+  const getLastAvailableDispensaryDropDate = (dispensary) => {
     const availableStrains = dispensary.strains.filter(
       (strain) => strain.available
     );
@@ -53,11 +56,22 @@ export const Home = () => {
       : "N/A";
   };
 
+  const getMostRecentDrop = (strain) => {
+    const availableDates = strain.dispensaries.map((i) => i.availableDate);
+    const mostRecentDate = availableDates.reduce((latest, date) => {
+      const dateDate = new Date(date);
+      return dateDate > latest ? dateDate : latest;
+    }, new Date(0));
+    return mostRecentDate > new Date(0)
+      ? mostRecentDate.toLocaleDateString()
+      : false;
+  }
+
   return (
     <Container minW="max-content">
       <Box p={4}>
         <Heading as="h1" mb={4}>
-          All Dispensaries
+          🏪 Dispensaries
         </Heading>
         <Table variant="simple">
           <Thead>
@@ -74,12 +88,11 @@ export const Home = () => {
                 <Td>
                   <ChakraLink
                     as={Link}
-                    to={`/${dispensary.name}`}
+                    to={`/${dispensary.slug}`}
                     color="blue.500"
                   >
                     <Box display="flex" alignItems="center gap-2">
-                      {dispensary.name.charAt(0).toUpperCase() +
-                        dispensary.name.slice(1)}
+                      {dispensary.name}
                       {/* ✅ if user is signed up */}
                       {dispensary.userStrains.some(
                         (us) => us.userId === user?.id
@@ -96,13 +109,46 @@ export const Home = () => {
                     </Box>
                   </ChakraLink>
                 </Td>
-                <Td>
-                  {Array.isArray(dispensary.strains)
-                    ? dispensary.strains.length
-                    : "N/A"}
+                <Td isNumeric>
+                  <Center>
+                    {Array.isArray(dispensary.strains)
+                      ? dispensary.strains.length
+                      : "N/A"}
+                  </Center>
                 </Td>
-                <Td>{getTotalUsers(dispensary)}</Td>
-                <Td>{getLastAvailableDropDate(dispensary)}</Td>
+                <Td isNumeric>
+                  <Center>{getTotalUsers(dispensary)}</Center>
+                </Td>
+                <Td>{getLastAvailableDispensaryDropDate(dispensary)}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </Box>
+      <Box p={4}>
+        <Heading as={"h1"} mb={4}>
+          🍃 Strains
+        </Heading>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Name</Th>
+              <Th>Grower</Th>
+              <Th>Dispensaries</Th>
+              <Th>Last Drop Date</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {strains?.map((strain) => (
+              <Tr key={strain.id}>
+                <Td>{strain.name}</Td>
+                <Td>{strain.grower}</Td>
+                <Td isNumeric>
+                  <Center>{strain.dispensaries?.length}</Center>
+                </Td>
+                <Td>
+                  <Center>{strain && getMostRecentDrop(strain) || "N/A"}</Center>
+                </Td>
               </Tr>
             ))}
           </Tbody>

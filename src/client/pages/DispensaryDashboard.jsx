@@ -19,6 +19,7 @@ import {
 import { useQuery } from "@wasp/queries";
 import { useAction } from "@wasp/actions";
 import getStrains from "@wasp/queries/getStrains";
+import getDispensary from "@wasp/queries/getDispensary";
 import deleteStrain from "@wasp/actions/deleteStrain";
 import { useParams } from "react-router-dom";
 import updateStrainAvailability from "@wasp/actions/updateStrainAvailability";
@@ -28,24 +29,32 @@ import { FaRegListAlt } from "react-icons/fa";
 import { FaLock } from "react-icons/fa";
 import { MdOutlineSms } from "react-icons/md";
 import { FaCirclePlus } from "react-icons/fa6";
-import Modal from 'react-modal';
+import Modal from "react-modal";
 import AddStrainModal from "./AddStrainModal";
 
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 export function DispensaryDashboard() {
   const toast = useToast();
-  const { dispensaryName } = useParams();
+  const { slug } = useParams();
+
+  const {
+    data: dispensary,
+    isLoading: dispensaryLoading,
+    error: dispensaryError,
+  } = useQuery(getDispensary, { slug: slug });
+
   useEffect(() => {
-    document.title =
-      "TerpText - " +
-      dispensaryName.charAt(0).toUpperCase() +
-      dispensaryName.slice(1) +
-      " - Dashboard";
+    document.title = "TerpText - " + dispensary?.name + " - Dashboard";
   }, []);
-  const { data: strains, refetch } = useQuery(getStrains, {
-    name: dispensaryName,
+
+  const {
+    data: strains,
+    refetch,
+  } = useQuery(getStrains, {
+    slug: slug,
   });
+
   const [modalIsOpen, setIsOpen] = useState(false);
 
   // Define action hooks
@@ -63,7 +72,7 @@ export function DispensaryDashboard() {
 
   const handleDeleteStrain = async (strainName) => {
     try {
-      await deleteStrainAction({ strainName, dispensaryName });
+      await deleteStrainAction({ strainName, dispensarySlug });
       refetch();
       toast({
         title: "Success",
@@ -117,7 +126,7 @@ export function DispensaryDashboard() {
     try {
       await updateStrainAvailabilityAction({
         strainName: strain.name,
-        dispensaryName,
+        dispensarySlug: slug,
         available: !currentAvailability,
       });
       refetch();
@@ -166,13 +175,13 @@ export function DispensaryDashboard() {
         <Box mb={4} display="flex">
           <Box>
             <Heading as="h2" size="lg" mb={2}>
-              {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
+              {dispensary?.name }
               's Strains:
             </Heading>
           </Box>
           <Spacer />
           <Box mr={2}>
-            <Link to={"/" + dispensaryName}>
+            <Link to={"/" + dispensary?.slug}>
               <Button rightIcon={<FaRegListAlt />} colorScheme="blue">
                 Your Listing
               </Button>
@@ -183,10 +192,15 @@ export function DispensaryDashboard() {
           <Thead>
             <Tr>
               <Th>
-                <Flex>Name <FaLock className="inline ml-1 mt-0.5" /></Flex>
+                <Flex>
+                  Name <FaLock className="inline ml-1 mt-0.5" />
+                </Flex>
               </Th>
               <Th>
-                <Flex> Grower <FaLock className="inline ml-1 mt-0.5" /> </Flex>
+                <Flex>
+                  {" "}
+                  Grower <FaLock className="inline ml-1 mt-0.5" />{" "}
+                </Flex>
               </Th>
               <Th>Last Available</Th>
               <Th>Availablity</Th>
@@ -243,7 +257,11 @@ export function DispensaryDashboard() {
             Add Strain
           </Button>
         </Center>
-              <AddStrainModal modalIsOpen={modalIsOpen} closeModal={closeModal} dispensaryName={dispensaryName} />
+        <AddStrainModal
+          modalIsOpen={modalIsOpen}
+          closeModal={closeModal}
+          dispensaryName={dispensary?.name}
+        />
       </Box>
     </Container>
   );

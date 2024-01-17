@@ -13,6 +13,9 @@ app TerpText {
   },
   db: {
     system: PostgreSQL,
+    seeds: [
+      import { devSeed } from "@server/devSeed.js"
+    ],
   },
   auth: {
     userEntity: User,
@@ -47,7 +50,10 @@ psl=}
 
 entity Dispensary {=psl
     id      Int      @id @default(autoincrement())
+    slug    String   @unique
     name    String   @unique
+    phone   String   @unique
+    website String   @unique
     strains DispensaryStrain[]
     userStrains UserStrain[]
 psl=}
@@ -66,16 +72,16 @@ entity UserStrain {=psl
     userId   Int
     strain   Strain @relation(fields: [strainId], references: [id])
     strainId Int
-    dispensary Dispensary @relation(fields: [dispensaryName], references: [name])
-    dispensaryName String
+    dispensary Dispensary @relation(fields: [dispensarySlug], references: [slug])
+    dispensarySlug String @default("dispensary slug")
     // unique compound index on userId, strainId, dispensaryName
-    @@id([userId, strainId, dispensaryName])
+    @@id([userId, strainId, dispensarySlug])
 psl=}
 
 entity DispensaryStrain {=psl
     id             Int          @id @default(autoincrement())
-    dispensary     Dispensary   @relation(fields: [dispensaryName], references: [name])
-    dispensaryName String @default("dispensary name")
+    dispensary     Dispensary   @relation(fields: [dispensarySlug], references: [slug])
+    dispensarySlug String
     strain         Strain       @relation(fields: [strainName], references: [name])
     strainName     String @default("strain name")
     available      Boolean      @default(false)
@@ -84,14 +90,29 @@ psl=}
 
 /////// ACTIONS ///////
 
-action addStrain {
-  fn: import { addStrain } from "@server/actions.js",
+action createUser {
+  fn: import { createUser } from "@server/actions.js",
+  entities: [User]
+}
+
+action createDispensary {
+  fn: import { createDispensary } from "@server/actions.js",
+  entities: [Dispensary]
+}
+
+action createStrain {
+  fn: import { createStrain } from "@server/actions.js",
   entities: [Strain, DispensaryStrain, Dispensary]
 }
 
 action deleteStrain {
   fn: import { deleteStrain } from "@server/actions.js",
   entities: [Strain, DispensaryStrain, Dispensary]
+}
+
+action linkStrain {
+  fn: import { linkStrain } from "@server/actions.js",
+  entities: [DispensaryStrain]
 }
 
 action updateStrainAvailability {
@@ -151,6 +172,11 @@ query getAllDispensaries {
   entities: [Dispensary]
 }
 
+query getAllStrains {
+  fn: import { getAllStrains } from "@server/queries.js",
+  entities: [Strain]
+}
+
 /////// ROUTES ///////
 
 route HomeRoute { path: "/", to: HomePage }
@@ -160,14 +186,14 @@ page HomePage {
   authRequired: false
 }
 
-route DispensaryRoute { path: "/:dispensaryName", to: DispensaryPage }
+route DispensaryRoute { path: "/:slug", to: DispensaryPage }
 
 page DispensaryPage {
   component: import { DispensaryPage } from "@client/pages/Dispensary.jsx",
   authRequired: false
 }
 
-route DispensaryDashboardRoute { path: "/:dispensaryName/dashboard", to: DispensaryDashboardPage }  
+route DispensaryDashboardRoute { path: "/:slug/dashboard", to: DispensaryDashboardPage }  
 
 page DispensaryDashboardPage {
   component: import { DispensaryDashboard } from "@client/pages/DispensaryDashboard.jsx",

@@ -68,12 +68,12 @@ export const UserProfile = () => {
     }
   };
 
-  const handleDispensaryChange = async (dispensaryName, isChecked) => {
+  const handleDispensaryChange = async (slug, isChecked, dispensaryName) => {
     try {
       if (isChecked) {
-        await createUserDispensary({ dispensaryName });
+        await createUserDispensary({ dispensarySlug: slug });
       } else {
-        await deleteUserDispensary({ dispensaryName });
+        await deleteUserDispensary({ dipensarySlug: slug });
       }
       toast({
         title: isChecked ? "Subscribed" : "Unsubscribed",
@@ -152,7 +152,7 @@ export const UserProfile = () => {
                   <Td>
                     <ChakraLink
                       as={Link}
-                      to={`/${dispensary.name}`}
+                      to={`/${dispensary.slug}`}
                       color="blue.500"
                     >
                       {dispensary.name.charAt(0).toUpperCase() +
@@ -164,8 +164,9 @@ export const UserProfile = () => {
                       isChecked={dispensary.enabled}
                       onChange={(e) =>
                         handleDispensaryChange(
-                          dispensary.name,
-                          e.target.checked
+                          dispensary.slug,
+                          e.target.checked,
+                          dispensary.name
                         )
                       }
                     />

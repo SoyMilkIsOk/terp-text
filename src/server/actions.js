@@ -1,25 +1,44 @@
 import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
 
-export const addStrain = async (args, context) => {
-  if (!context.user) {
-    throw new HttpError(401, "Must be logged in to add a strain");
-  }
+export const createUser = async (args, context) => {
+  const { username, password, phone } = args;
 
-  const { name, dispensaryName } = args;
-
-  const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name: dispensaryName },
+  const user = await context.entities.User.create({
+    data: {
+      username,
+      password,
+      phone,
+    },
   });
 
-  if (!dispensary) {
-    throw new HttpError(404, "No dispensary with name " + dispensaryName);
-  }
+  return user;
+}
 
-  const strain = await context.entities.DispensaryStrain.create({
+export const createDispensary = async (args, context) => {
+
+  const { name, phone, slug, website } = args;
+
+  const dispensary = await context.entities.Dispensary.create({
     data: {
       name,
-      dispensaryName,
+      phone,
+      slug,
+      website,
+    },
+  });
+
+  return dispensary;
+}
+
+export const createStrain = async (args, context) => {
+
+  const { name, grower } = args;
+
+  const strain = await context.entities.Strain.create({
+    data: {
+      name,
+      grower,
     },
   });
 
@@ -31,14 +50,14 @@ export const deleteStrain = async (args, context) => {
     throw new HttpError(401, "Must be logged in to delete a strain");
   }
 
-  const { strainName, dispensaryName } = args;
+  const { strainName, dispensarySlug } = args;
 
   console.log("name", strainName);
   console.log("dispensaryName", dispensaryName);
-  const name = dispensaryName;
+  const slug = dispensarySlug;
 
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name },
+    where: { slug },
 
   });
 
@@ -49,22 +68,34 @@ export const deleteStrain = async (args, context) => {
   const strain = await context.entities.DispensaryStrain.deleteMany({
     where: {
       strainName,
-      dispensaryName,
+      dispensarySlug,
     },
   });
 
   return strain;
 }
 
-export const updateStrainAvailability = async (args, context) => {
-  if (!context.user) {
-    throw new HttpError(401, "Must be logged in to update a strain");
+export const linkStrain = async (args, context) => {
+  
+    const { strainName, dispensarySlug, available } = args;
+  
+    const strain = await context.entities.DispensaryStrain.create({
+      data: {
+        strainName,
+        dispensarySlug,
+        available,
+      },
+    });
+  
+    return strain;
   }
 
-  const { strainName, dispensaryName, available } = args;
+export const updateStrainAvailability = async (args, context) => {
+
+  const { strainName, dispensarySlug, available } = args;
 
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name: dispensaryName },
+    where: { slug: dispensarySlug },
   });
 
   if (!dispensary) {
@@ -74,7 +105,7 @@ export const updateStrainAvailability = async (args, context) => {
   const strain = await context.entities.DispensaryStrain.updateMany({
     where: {
       strainName,
-      dispensaryName,
+      dispensarySlug,
     },
     data: {
       available,
@@ -89,13 +120,13 @@ export const deleteUserStrain = async (args, context) => {
     throw new HttpError(401, "Must be logged in to delete a strain");
   }
 
-  const { strainId, dispensaryName } = args;
+  const { strainId, dispensarySlug } = args;
 
   const strain = await context.entities.UserStrain.deleteMany({
     where: {
       strainId,
       userId: context.user.id,
-      dispensaryName,
+      dispensarySlug,
     },
   });
 
@@ -107,13 +138,13 @@ export const createUserStrain = async (args, context) => {
     throw new HttpError(401, "Must be logged in to add a strain");
   }
 
-  const { strainId, dispensaryName } = args;
+  const { strainId, dispensarySlug } = args;
 
   const strain = await context.entities.UserStrain.create({
     data: {
       userId: context.user.id,
       strainId,
-      dispensaryName,
+      dispensarySlug,
     },
   });
 
@@ -125,12 +156,12 @@ export const deleteUserDispensary = async (args, context) => {
     throw new HttpError(401, "Must be logged in to delete a dispensary");
   }
 
-  const { dispensaryName } = args;
+  const { dispensarySlug } = args;
 
   const dispensary = await context.entities.UserStrain.deleteMany({
     where: {
       userId: context.user.id,
-      dispensaryName,
+      dispensarySlug,
     },
   });
 

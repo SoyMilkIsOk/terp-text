@@ -17,23 +17,25 @@ import {
   Flex,
   Spacer,
   Center,
+  Text,
+  HStack,
+  VStack,
+  Divider,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { IoIosSettings } from "react-icons/io";
+import { IoCall } from "react-icons/io5";
+import { FaPlug } from "react-icons/fa6";
 import useAuth from "@wasp/auth/useAuth";
 import { useQuery } from "@wasp/queries";
 import { useAction } from "@wasp/actions";
 import getDispensary from "@wasp/queries/getDispensary";
-import createUserStrain from "@wasp/actions/createUserStrain"; // Assuming this action is implemented
-import deleteUserStrain from "@wasp/actions/deleteUserStrain"; // Assuming this action is implemented
+import createUserStrain from "@wasp/actions/createUserStrain";
+import deleteUserStrain from "@wasp/actions/deleteUserStrain";
 
 export function DispensaryPage() {
-  const { dispensaryName } = useParams();
-  useEffect(() => {
-    document.title =
-      "TerpText - " +
-      dispensaryName.charAt(0).toUpperCase() +
-      dispensaryName.slice(1);
-  }, []);
+  const { slug } = useParams();
+
   const { data: user } = useAuth();
   const toast = useToast();
 
@@ -41,7 +43,11 @@ export function DispensaryPage() {
     data: dispensary,
     isLoading: dispensaryLoading,
     error: dispensaryError,
-  } = useQuery(getDispensary, { name: dispensaryName });
+  } = useQuery(getDispensary, { slug: slug });
+
+  useEffect(() => {
+    document.title = "TerpText - " + dispensary?.name;
+  }, []);
 
   const createUserStrainFn = useAction(createUserStrain);
   const deleteUserStrainFn = useAction(deleteUserStrain);
@@ -59,15 +65,19 @@ export function DispensaryPage() {
     }
   }, [dispensary, user]);
 
-  const handleChange = async (strainId, isChecked) => {
+  const handleChange = async (strainId, isChecked, slug) => {
     setNotificationSettings((prevSettings) =>
       new Map(prevSettings).set(strainId, isChecked)
     );
     try {
-      if (isChecked) {
-        await createUserStrainFn({ strainId, dispensaryName });
-      } else {
-        await deleteUserStrainFn({ strainId, dispensaryName });
+      if (dispensaryName) {
+        if (isChecked) {
+          console.log("dispensaryName: " + dispensaryName);
+          await createUserStrainFn({ strainId, dispensarySlug: slug });
+        } else {
+          console.log("dispensaryName: " + dispensaryName);
+          await deleteUserStrainFn({ strainId, dispensarySlug: slug });
+        }
       }
       toast({
         title: isChecked ? "Subscribed" : "Unsubscribed",
@@ -90,86 +100,146 @@ export function DispensaryPage() {
   if (dispensaryError) return <Box>Error: {dispensaryError}</Box>;
 
   const strains = dispensary?.strains;
+  const dispensaryName = dispensary?.name;
 
   return (
     <Container maxW="max-content">
       <Box p={4}>
         <Flex>
           <Heading as="h1" size="xl" mb={4}>
-            {dispensaryName.charAt(0).toUpperCase() + dispensaryName.slice(1)}
+            {dispensary?.name}
           </Heading>
           <Spacer />
-          {user?.username === dispensaryName && (
+          {user?.username === slug ? (
             <Button
               as={Link}
-              to={"/" + dispensaryName + "/dashboard"}
+              rightIcon={<IoIosSettings />}
+              to={"/" + slug + "/dashboard"}
               colorScheme="blue"
               size="md"
-              >
-              <IoIosSettings />
+            >
+              Dashboard
             </Button>
+          ) : (
+            <HStack>
+              {dispensary.phone && (
+                <Button //call button
+                  as={"a"}
+                  rightIcon={<IoCall />}
+                  href={"tel:" + dispensary.phone}
+                  colorScheme="blue"
+                  size="sm"
+                >
+                  Call
+                </Button>
+              )}
+              {dispensary.website && (
+                <Button
+                  as={"a"}
+                  rightIcon={<FaPlug />}
+                  href={dispensary.website}
+                  colorScheme="blue"
+                  size="sm"
+                >
+                  Menu
+                </Button>
+              )}
+            </HStack>
           )}
         </Flex>
-    
-        {!user ? (
-          <Center>
-            <Box>Please log in to manage your notifications.</Box>
-          </Center>
-        ) : (
-          <Box mt={4}>
-            <Heading as="h2" size="lg" mb={2}>
-              Strain Notifications:
-            </Heading>
-            <Table variant="simple">
-              <Thead>
-                <Tr>
-                  <Th>Strain</Th>
-                  <Th>Grower</Th>
-                  <Th>Status</Th>
-                  <Th>Last Available</Th>
-                  <Th isNumeric>Notification</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {strains?.map((i) => (
-                  <Tr key={i.strain.id}>
-                    <Td>{i.strain.name}</Td>
-                    <Td>{i.strain.grower}</Td>
-                    <Td>
-                      <Tooltip
-                        label={
-                          i.available
-                            ? "Currently Available"
-                            : "Currently Unavailable"
-                        }
-                        aria-label="A tooltip"
-                        placement="right"
-                        hasArrow
-                      >
-                        <span className="ml-4">
-                          {i.available ? "✅" : "⏰"}
-                        </span>
-                      </Tooltip>
-                    </Td>
-                    <Td>
-                      {new Date(i.availableDate).toLocaleDateString("en-US")}
-                    </Td>
+        <Box mt={4}>
+          <Heading as="h2" size="lg" mb={2}>
+            Strains:
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Strain</Th>
+                <Th>Grower</Th>
+                <Th>Status</Th>
+                <Th>Last Available</Th>
+                <Th isNumeric>Notifications</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {strains?.map((i) => (
+                <Tr key={i.strain.id}>
+                  <Td>{i.strain.name}</Td>
+                  <Td>{i.strain.grower}</Td>
+                  <Td>
+                    <Tooltip
+                      label={
+                        i.available
+                          ? "Currently Available"
+                          : "Currently Unavailable"
+                      }
+                      aria-label="A tooltip"
+                      placement="right"
+                      hasArrow
+                    >
+                      <span className="ml-4">{i.available ? "✅" : "⏰"}</span>
+                    </Tooltip>
+                  </Td>
+                  <Td>
+                    {new Date(i.availableDate).toLocaleDateString("en-US")}
+                  </Td>
+                  {user ? (
                     <Td isNumeric>
                       <Switch
                         mr={7}
                         isChecked={notificationSettings.get(i.strain.id)}
                         onChange={(e) =>
-                          handleChange(i.strain.id, e.target.checked)
+                          handleChange(
+                            i.strain.id,
+                            e.target.checked,
+                            slug
+                          )
                         }
                       />
                     </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-        )}
+                  ) : (
+                    <Td isNumeric>
+                      <Tooltip
+                        label="Please sign up or log in to manage your notifications."
+                        aria-label="A tooltip"
+                        placement="right"
+                        hasArrow
+                      >
+                        <Text mr={10}>🔒</Text>
+                      </Tooltip>
+                    </Td>
+                  )}
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          {!user && (
+            <Center>
+              <VStack direction="row" spacing={3} mt={6}>
+                <Button
+                  as={Link}
+                  to="/signup"
+                  colorScheme="blue"
+                  size={"md"}
+                  fontWeight={"bold"}
+                >
+                  Sign up
+                </Button>
+                <Divider />
+                <Button
+                  as={Link}
+                  fontWeight={"bold"}
+                  to="/login"
+                  variant={"outline"}
+                  colorScheme="blue"
+                >
+                  Log in
+                </Button>
+              </VStack>
+            </Center>
+          )}
+        </Box>
       </Box>
     </Container>
   );
-}    
+}

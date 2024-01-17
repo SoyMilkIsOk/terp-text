@@ -1,8 +1,8 @@
 import HttpError from "@wasp/core/HttpError.js";
 
-export const getDispensary = async ({ name }, context) => {
+export const getDispensary = async ({ slug }, context) => {
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name },
+    where: { slug },
     include: {
       strains: {
         include: {
@@ -23,22 +23,37 @@ export const getAllDispensaries = async (args, context) => {
     include: {
       strains: {
         include: {
-          strain: true,
+          strain: {
+            include: {
+              dispensaries: true,
+            },
+          },
         },
       },
       userStrains: true,
     },
   });
 
-  // console.log('dispensaries', dispensaries);
-
   return dispensaries;
 };
 
-export const getStrains = async ({ name }, context) => {
+export const getAllStrains = async (args, context) => {
+  const strains = await context.entities.Strain.findMany({
+    include: {
+      dispensaries: {
+        include: {
+          dispensary: true,
+        },
+      },
+    },
+  });
 
+  return strains;
+};
+
+export const getStrains = async ({ slug }, context) => {
   const dispensary = await context.entities.Dispensary.findUnique({
-    where: { name },
+    where: { slug },
     include: {
       strains: {
         include: {
@@ -69,8 +84,6 @@ export const getUser = async ({ username }, context) => {
   });
 
   if (!user) throw new HttpError(404, "No user with username " + username);
-
-  // console.log('user', user);
 
   return user;
 };
