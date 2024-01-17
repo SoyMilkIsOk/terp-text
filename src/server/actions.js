@@ -52,18 +52,7 @@ export const deleteStrain = async (args, context) => {
 
   const { strainName, dispensarySlug } = args;
 
-  console.log("name", strainName);
-  console.log("dispensaryName", dispensaryName);
   const slug = dispensarySlug;
-
-  const dispensary = await context.entities.Dispensary.findUnique({
-    where: { slug },
-
-  });
-
-  if (!dispensary) {
-    throw new HttpError(404, "No dispensary with name " + dispensaryName);
-  }
 
   const strain = await context.entities.DispensaryStrain.deleteMany({
     where: {

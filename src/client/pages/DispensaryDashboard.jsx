@@ -70,7 +70,7 @@ export function DispensaryDashboard() {
     setIsOpen(false);
   }
 
-  const handleDeleteStrain = async (strainName) => {
+  const handleDeleteStrain = async (strainName, dispensarySlug) => {
     try {
       await deleteStrainAction({ strainName, dispensarySlug });
       refetch();
@@ -229,7 +229,6 @@ export function DispensaryDashboard() {
                 <Td alignContent={"center"}>
                   <Button
                     colorScheme="blue"
-                    className="ml-3"
                     // onClick={() => handleSendText(i.strain.name)}
                   >
                     <MdOutlineSms />
@@ -238,7 +237,7 @@ export function DispensaryDashboard() {
                 <Td>
                   <Button
                     colorScheme="red"
-                    onClick={() => handleDeleteStrain(i.strain.name)}
+                    onClick={() => handleDeleteStrain(i.strain.name, slug)}
                   >
                     <FaRegTrashAlt />
                   </Button>

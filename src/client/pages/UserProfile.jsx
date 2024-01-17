@@ -68,12 +68,15 @@ export const UserProfile = () => {
     }
   };
 
-  const handleDispensaryChange = async (slug, isChecked, dispensaryName) => {
+  const handleDispensaryChange = async (dispensarySlug, isChecked, dispensaryName) => {
     try {
+      if (!dispensarySlug) {
+        return;
+      }
       if (isChecked) {
-        await createUserDispensary({ dispensarySlug: slug });
+        await createUserDispensary({ dispensarySlug });
       } else {
-        await deleteUserDispensary({ dipensarySlug: slug });
+        await deleteUserDispensary({ dispensarySlug });
       }
       toast({
         title: isChecked ? "Subscribed" : "Unsubscribed",
@@ -164,7 +167,7 @@ export const UserProfile = () => {
                       isChecked={dispensary.enabled}
                       onChange={(e) =>
                         handleDispensaryChange(
-                          dispensary.slug,
+                          dispensary?.slug,
                           e.target.checked,
                           dispensary.name
                         )

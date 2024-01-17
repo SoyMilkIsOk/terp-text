@@ -72,10 +72,8 @@ export function DispensaryPage() {
     try {
       if (dispensaryName) {
         if (isChecked) {
-          console.log("dispensaryName: " + dispensaryName);
           await createUserStrainFn({ strainId, dispensarySlug: slug });
         } else {
-          console.log("dispensaryName: " + dispensaryName);
           await deleteUserStrainFn({ strainId, dispensarySlug: slug });
         }
       }
