@@ -51,6 +51,8 @@ export function DispensaryPage() {
   const [notificationSettings, setNotificationSettings] = useState(new Map());
   const [sortedStrains, setSortedStrains] = useState([]);
 
+  const dispensaryName = dispensary?.name;
+
   useEffect(() => {
     if (dispensary && user) {
       const userSubscriptions = new Map(
@@ -61,7 +63,6 @@ export function DispensaryPage() {
       setNotificationSettings(userSubscriptions);
 
       const strains = dispensary?.strains;
-      const dispensaryName = dispensary?.name;
 
       const sorted = [...strains].sort((a, b) =>
         a.strain.name.localeCompare(b.strain.name)
@@ -186,6 +187,12 @@ export function DispensaryPage() {
                   </Td>
                   {user ? (
                     <Td isNumeric>
+                      <Tooltip 
+                        label="Sign up for notifications for this strain."
+                        aria-label="A tooltip"
+                        placement="right"
+                        hasArrow
+                      >
                       <Switch
                         mr={7}
                         isChecked={notificationSettings.get(i.strain.id)}
@@ -193,6 +200,7 @@ export function DispensaryPage() {
                           handleChange(i.strain.id, e.target.checked, slug)
                         }
                       />
+                      </Tooltip>
                     </Td>
                   ) : (
                     <Td isNumeric>
