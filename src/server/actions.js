@@ -83,14 +83,6 @@ export const updateStrainAvailability = async (args, context) => {
 
   const { strainName, dispensarySlug, available } = args;
 
-  const dispensary = await context.entities.Dispensary.findUnique({
-    where: { slug: dispensarySlug },
-  });
-
-  if (!dispensary) {
-    throw new HttpError(404, "No dispensary with name " + dispensaryName);
-  }
-
   const strain = await context.entities.DispensaryStrain.updateMany({
     where: {
       strainName,
@@ -193,6 +185,23 @@ export const createUserDispensary = async (args, context) => {
       }
     }
   }
+
+  return dispensary;
+}
+
+export const createDispensaryStrain = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to add a dispensary");
+  }
+
+  const { dispensarySlug, strainName } = args;
+
+  const dispensary = await context.entities.DispensaryStrain.create({
+    data: {
+      dispensarySlug,
+      strainName,
+    },
+  });
 
   return dispensary;
 }

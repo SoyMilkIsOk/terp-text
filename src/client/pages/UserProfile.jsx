@@ -48,6 +48,7 @@ export const UserProfile = () => {
         .filter((v, i, a) => a.findIndex((t) => t.name === v.name) === i)
         .map((d) => ({ ...d, enabled: true }))
     );
+    document.title = "TerpText - " + user?.username + "'s Profile";
   }, [user, userProfile]);
 
   const handlePhoneUpdate = async () => {

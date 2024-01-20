@@ -43,7 +43,7 @@ page SignupPage {
 entity User {=psl
     id           Int          @id @default(autoincrement())
     username     String      @unique @default(cuid())
-    phone        String       @unique @default("000-000-0000")
+    phone        String?      @unique
     password     String
     strains      UserStrain[]
 psl=}
@@ -52,8 +52,8 @@ entity Dispensary {=psl
     id      Int      @id @default(autoincrement())
     slug    String   @unique
     name    String   @unique
-    phone   String   @unique
-    website String   @unique
+    phone   String?   @unique
+    website String?   @unique
     strains DispensaryStrain[]
     userStrains UserStrain[]
 psl=}
@@ -148,6 +148,11 @@ action unsubscribeFromTexts {
 action updatePhone {
   fn: import { updatePhone } from "@server/actions.js",
   entities: [User]
+}
+
+action createDispensaryStrain {
+  fn: import { createDispensaryStrain } from "@server/actions.js",
+  entities: [DispensaryStrain]
 }
 
 /////// QUERIES ///////

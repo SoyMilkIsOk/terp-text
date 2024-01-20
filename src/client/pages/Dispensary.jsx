@@ -45,14 +45,11 @@ export function DispensaryPage() {
     error: dispensaryError,
   } = useQuery(getDispensary, { slug: slug });
 
-  useEffect(() => {
-    document.title = "TerpText - " + dispensary?.name;
-  }, []);
-
   const createUserStrainFn = useAction(createUserStrain);
   const deleteUserStrainFn = useAction(deleteUserStrain);
 
   const [notificationSettings, setNotificationSettings] = useState(new Map());
+  const [sortedStrains, setSortedStrains] = useState([]);
 
   useEffect(() => {
     if (dispensary && user) {
@@ -62,7 +59,16 @@ export function DispensaryPage() {
           .map((us) => [us.strainId, true])
       );
       setNotificationSettings(userSubscriptions);
+
+      const strains = dispensary?.strains;
+      const dispensaryName = dispensary?.name;
+
+      const sorted = [...strains].sort((a, b) =>
+        a.strain.name.localeCompare(b.strain.name)
+      );
+      setSortedStrains(sorted);
     }
+    document.title = "TerpText - " + dispensary?.name;
   }, [dispensary, user]);
 
   const handleChange = async (strainId, isChecked, slug) => {
@@ -96,9 +102,6 @@ export function DispensaryPage() {
 
   if (dispensaryLoading) return <Box>Loading...</Box>;
   if (dispensaryError) return <Box>Error: {dispensaryError}</Box>;
-
-  const strains = dispensary?.strains;
-  const dispensaryName = dispensary?.name;
 
   return (
     <Container maxW="max-content">
@@ -160,7 +163,7 @@ export function DispensaryPage() {
               </Tr>
             </Thead>
             <Tbody>
-              {strains?.map((i) => (
+              {sortedStrains?.map((i) => (
                 <Tr key={i.strain.id}>
                   <Td>{i.strain.name}</Td>
                   <Td>{i.strain.grower}</Td>
@@ -187,11 +190,7 @@ export function DispensaryPage() {
                         mr={7}
                         isChecked={notificationSettings.get(i.strain.id)}
                         onChange={(e) =>
-                          handleChange(
-                            i.strain.id,
-                            e.target.checked,
-                            slug
-                          )
+                          handleChange(i.strain.id, e.target.checked, slug)
                         }
                       />
                     </Td>

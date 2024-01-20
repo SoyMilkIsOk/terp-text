@@ -44,14 +44,7 @@ export function DispensaryDashboard() {
     error: dispensaryError,
   } = useQuery(getDispensary, { slug: slug });
 
-  useEffect(() => {
-    document.title = "TerpText - " + dispensary?.name + " - Dashboard";
-  }, []);
-
-  const {
-    data: strains,
-    refetch,
-  } = useQuery(getStrains, {
+  const { data: strains, refetch } = useQuery(getStrains, {
     slug: slug,
   });
 
@@ -107,17 +100,19 @@ export function DispensaryDashboard() {
         a.strain.name.localeCompare(b.strain.name)
       );
       setSortedStrains(sorted);
-
       const newStrainAvailability = {};
-      sorted.forEach((strain) => {
-        newStrainAvailability[strain.id] = strain.available;
-      });
+      if (sorted) {
+        sorted.forEach((i) => {
+          newStrainAvailability[i.strain.id] = i.available;
+        });
+      }
       setStrainAvailability(newStrainAvailability);
     }
+    document.title = "TerpText - " + dispensary?.name + " - Dashboard";
   }, [strains]);
 
   const handleToggleAvailability = async (strain, currentAvailability) => {
-    // Optimistically update the UI
+
     setStrainAvailability((prev) => ({
       ...prev,
       [strain.id]: !currentAvailability,
@@ -175,7 +170,7 @@ export function DispensaryDashboard() {
         <Box mb={4} display="flex">
           <Box>
             <Heading as="h2" size="lg" mb={2}>
-              {dispensary?.name }
+              {dispensary?.name}
               's Strains:
             </Heading>
           </Box>
@@ -259,7 +254,8 @@ export function DispensaryDashboard() {
         <AddStrainModal
           modalIsOpen={modalIsOpen}
           closeModal={closeModal}
-          dispensaryName={dispensary?.name}
+          dispensarySlug={slug}
+          nonStrains={strains.map((i) => i.strain.id)}
         />
       </Box>
     </Container>
