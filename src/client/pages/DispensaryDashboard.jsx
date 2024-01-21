@@ -213,6 +213,7 @@ export function DispensaryDashboard() {
                   <Switch
                     isChecked={strainAvailability[i.strain.id]}
                     className="ml-5"
+                    colorScheme="green"
                     onChange={() =>
                       handleToggleAvailability(
                         i.strain,

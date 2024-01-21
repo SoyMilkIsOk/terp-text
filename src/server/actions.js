@@ -83,6 +83,8 @@ export const updateStrainAvailability = async (args, context) => {
 
   const { strainName, dispensarySlug, available } = args;
 
+  const currentDate = new Date();
+
   const strain = await context.entities.DispensaryStrain.updateMany({
     where: {
       strainName,
@@ -90,6 +92,7 @@ export const updateStrainAvailability = async (args, context) => {
     },
     data: {
       available,
+      availableDate: currentDate,
     },
   });  
 

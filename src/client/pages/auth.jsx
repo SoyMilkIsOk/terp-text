@@ -4,18 +4,27 @@ import { VerifyEmailForm } from "@wasp/auth/forms/VerifyEmail";
 import { ForgotPasswordForm } from "@wasp/auth/forms/ForgotPassword";
 import { ResetPasswordForm } from "@wasp/auth/forms/ResetPassword";
 import { Link } from "react-router-dom";
+import { Link as ChakraLink } from "@chakra-ui/react";
+import { authAppearance } from "../appearance.js";
 
 export function Login() {
   return (
     <Layout>
-      <LoginForm />
+      <LoginForm appearance={authAppearance} />
       <br />
       <span className="text-sm font-medium text-gray-900">
-        Don't have an account yet? <Link to="/signup">go to signup</Link>.
+        Don't have an account yet?{" "}
+        <ChakraLink as={Link} to="/signup" color="blue.500">
+          go to signup
+        </ChakraLink>
+        .
       </span>
       <br />
       <span className="text-sm font-medium text-gray-900">
-        Forgot your password? <Link to="/request-password-reset">reset it</Link>
+        Forgot your password?{" "}
+        <ChakraLink as={Link} to="/request-password-reset" color="blue.500">
+          reset it
+        </ChakraLink>
         .
       </span>
     </Layout>
@@ -25,10 +34,13 @@ export function Login() {
 export function Signup() {
   return (
     <Layout>
-      <SignupForm />
+      <SignupForm appearance={authAppearance} />
       <br />
       <span className="text-sm font-medium text-gray-900">
-        I already have an account (<Link to="/login">go to login</Link>).
+        I have an account,{" "}
+        <ChakraLink as={Link} to="/login" color="blue.500">
+          go to login
+        </ChakraLink>
       </span>
     </Layout>
   );
@@ -37,10 +49,13 @@ export function Signup() {
 export function EmailVerification() {
   return (
     <Layout>
-      <VerifyEmailForm />
+      <VerifyEmailForm appearance={authAppearance} />
       <br />
       <span className="text-sm font-medium text-gray-900">
-        If everything is okay, <Link to="/login">go to login</Link>
+        If everything is okay,{" "}
+        <ChakraLink as={Link} to="/login" color="blue.500">
+          go to login
+        </ChakraLink>
       </span>
     </Layout>
   );
@@ -49,7 +64,7 @@ export function EmailVerification() {
 export function RequestPasswordReset() {
   return (
     <Layout>
-      <ForgotPasswordForm />
+      <ForgotPasswordForm appearance={authAppearance} />
     </Layout>
   );
 }
@@ -57,10 +72,13 @@ export function RequestPasswordReset() {
 export function PasswordReset() {
   return (
     <Layout>
-      <ResetPasswordForm />
+      <ResetPasswordForm appearance={authAppearance} />
       <br />
-      <span className="text-sm font-medium text-gray-900">
-        If everything is okay, <Link to="/login">go to login</Link>
+      <span className="text-sm font-medium texLinkt-gray-900">
+        If everything is okay,{" "}
+        <ChakraLink as={Link} to="/login" color="blue.500">
+          go to login
+        </ChakraLink>
       </span>
     </Layout>
   );

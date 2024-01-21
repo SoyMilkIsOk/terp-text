@@ -18,6 +18,8 @@ import {
   FormLabel,
   Center,
   Container,
+  InputGroup,
+  InputLeftAddon,
   Link as ChakraLink,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
@@ -30,6 +32,7 @@ import updatePhone from "@wasp/actions/updatePhone"; // Assume this action is im
 import unsubscribeFromTexts from "@wasp/actions/unsubscribeFromTexts"; // Assume this action is implemented
 import createUserDispensary from "@wasp/actions/createUserDispensary"; // Assume this action is implemented
 import deleteUserDispensary from "@wasp/actions/deleteUserDispensary"; // Assume this action is implemented
+import { FaPhone } from "react-icons/fa";
 
 export const UserProfile = () => {
   const { data: user } = useAuth();
@@ -69,7 +72,11 @@ export const UserProfile = () => {
     }
   };
 
-  const handleDispensaryChange = async (dispensarySlug, isChecked, dispensaryName) => {
+  const handleDispensaryChange = async (
+    dispensarySlug,
+    isChecked,
+    dispensaryName
+  ) => {
     try {
       if (!dispensarySlug) {
         return;
@@ -118,11 +125,18 @@ export const UserProfile = () => {
         <FormControl>
           <FormLabel>Update Phone Number</FormLabel>
           <Flex>
-            <Input
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder={user.phone || "Phone Number"}
-              maxW={"max-content"}
-            />
+            <InputGroup>
+              <InputLeftAddon>+1</InputLeftAddon>
+              <Input
+                type="tel"
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={user.phone || "Phone Number"}
+                maxW={"max-content"}
+                pattern="^\+1\s\(\d{3}\)\s\d{3}-\d{4}$" // Pattern for US phone number format: +1 (XXX) XXX-XXXX
+                required
+                title="Phone number must be in the format: +1 (XXX) XXX-XXXX"
+              />
+            </InputGroup>
             <Button
               leftIcon={<FaRegSave />}
               onClick={handlePhoneUpdate}
@@ -167,6 +181,8 @@ export const UserProfile = () => {
                     <Switch
                       isChecked={dispensary.enabled}
                       onChange={(e) =>
+                        //check if dispensary switch was toggled on or off
+                        e.target.checked &&
                         handleDispensaryChange(
                           dispensary?.slug,
                           e.target.checked,
