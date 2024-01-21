@@ -114,7 +114,7 @@ export function DispensaryPage() {
             {dispensary?.name}
           </Heading>
           <Spacer />
-          {user?.username === slug ? (
+          {user?.email === dispensary?.adminEmail ? (
             <Button
               as={Link}
               rightIcon={<IoIosSettings />}
@@ -188,13 +188,7 @@ export function DispensaryPage() {
                     {new Date(i.availableDate).toLocaleDateString("en-US")}
                   </Td>
                   {user ? (
-                    <Td isNumeric>
-                      <Tooltip 
-                        label="Sign up for notifications for this strain."
-                        aria-label="A tooltip"
-                        placement="right"
-                        hasArrow
-                      >
+                    <Td >
                       <Switch
                         mr={7}
                         isChecked={notificationSettings.get(i.strain.id)}
@@ -202,7 +196,6 @@ export function DispensaryPage() {
                           handleChange(i.strain.id, e.target.checked, slug)
                         }
                       />
-                      </Tooltip>
                     </Td>
                   ) : (
                     <Td isNumeric>

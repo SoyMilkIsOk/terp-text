@@ -36,7 +36,7 @@ export const App = ({ children }) => {
               <span className="mt-2">
                 <Tooltip label="Your profile" aria-label="Your profile">
                   <Button
-                    to={"/" + user.username + "/profile"}
+                    to={"/user/profile"}
                     as={Link}
                     colorScheme="blue"
                     size={"md"}

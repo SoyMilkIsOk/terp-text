@@ -13,8 +13,6 @@ export const getDispensary = async ({ slug }, context) => {
     },
   });
 
-  if (!dispensary) throw new HttpError(404, "No dispensary with name " + name);
-
   return dispensary;
 };
 
@@ -66,13 +64,13 @@ export const getStrains = async ({ slug }, context) => {
   return dispensary.strains;
 };
 
-export const getUser = async ({ username }, context) => {
+export const getUser = async ({ id }, context) => {
   if (!context.user) {
     throw new HttpError(401);
   }
 
   const user = await context.entities.User.findUnique({
-    where: { username },
+    where: { id: context.user.id },
     include: {
       strains: {
         include: {
@@ -82,8 +80,6 @@ export const getUser = async ({ username }, context) => {
       },
     },
   });
-
-  if (!user) throw new HttpError(404, "No user with username " + username);
 
   return user;
 };

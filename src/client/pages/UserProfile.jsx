@@ -37,7 +37,7 @@ export const UserProfile = () => {
   const [phone, setPhone] = useState("");
   const [dispensaries, setDispensaries] = useState([]);
   const { data: userProfile, refetch } = useQuery(getUser, {
-    username: user?.username,
+    id: user?.id,
   });
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const UserProfile = () => {
         .filter((v, i, a) => a.findIndex((t) => t.name === v.name) === i)
         .map((d) => ({ ...d, enabled: true }))
     );
-    document.title = "TerpText - " + user?.username + "'s Profile";
+    document.title = "TerpText - Your Profile";
   }, [user, userProfile]);
 
   const handlePhoneUpdate = async () => {

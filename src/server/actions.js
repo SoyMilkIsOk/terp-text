@@ -2,11 +2,11 @@ import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
 
 export const createUser = async (args, context) => {
-  const { username, password, phone } = args;
+  const { email, password, phone } = args;
 
   const user = await context.entities.User.create({
     data: {
-      username,
+      email,
       password,
       phone,
     },
