@@ -12,12 +12,14 @@ import { Button, useToast } from "@chakra-ui/react";
 import terptextLogo from "/images/terptext-logo.png";
 import { TbLogout, TbLogin } from "react-icons/tb";
 import { FaRegUserCircle } from "react-icons/fa";
+import AgeVerificationModal from "./pages/AgeVerificationModal";
 
 export const App = ({ children }) => {
   const { data: user } = useAuth();
 
   return (
     <ChakraProvider>
+      <AgeVerificationModal />
       <div className="flex flex-col min-h-screen">
         <header className="bg-primary-800 text-white p-4">
           <div className="container mx-auto px-4 py-2 flex justify-between">

@@ -19,6 +19,7 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
+import AgeVerificationModal from "./AgeVerificationModal";
 
 export const Home = () => {
   useEffect(() => {
@@ -65,7 +66,7 @@ export const Home = () => {
     return mostRecentDate > new Date(0)
       ? mostRecentDate.toLocaleDateString()
       : false;
-  }
+  };
 
   return (
     <Container minW="max-content">
@@ -147,7 +148,9 @@ export const Home = () => {
                   <Center>{strain.dispensaries?.length}</Center>
                 </Td>
                 <Td>
-                  <Center>{strain && getMostRecentDrop(strain) || "N/A"}</Center>
+                  <Center>
+                    {(strain && getMostRecentDrop(strain)) || "N/A"}
+                  </Center>
                 </Td>
               </Tr>
             ))}

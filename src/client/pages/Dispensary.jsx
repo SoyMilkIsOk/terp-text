@@ -54,13 +54,15 @@ export function DispensaryPage() {
   const dispensaryName = dispensary?.name;
 
   useEffect(() => {
-    if (dispensary && user) {
+    if (dispensary) {
+      if(user) {
       const userSubscriptions = new Map(
         dispensary.userStrains
           .filter((us) => us.userId === user.id)
           .map((us) => [us.strainId, true])
       );
       setNotificationSettings(userSubscriptions);
+      }
 
       const strains = dispensary?.strains;
 
