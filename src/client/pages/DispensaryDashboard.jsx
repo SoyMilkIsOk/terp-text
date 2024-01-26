@@ -31,6 +31,7 @@ import { MdOutlineSms } from "react-icons/md";
 import { FaCirclePlus } from "react-icons/fa6";
 import Modal from "react-modal";
 import AddStrainModal from "./AddStrainModal";
+import SendNotificationModal from "./SendNotificationModal";
 
 Modal.setAppElement("#root");
 
@@ -89,6 +90,16 @@ export function DispensaryDashboard() {
   // TBD
   // };
 
+  const [sendNotificationModalIsOpen, setSendNotificationModalIsOpen] =
+    useState(false);
+  const [selectedStrainForNotification, setSelectedStrainForNotification] =
+    useState("");
+
+  const handleSendNotification = (strainName) => {
+    setSelectedStrainForNotification(strainName);
+    setSendNotificationModalIsOpen(true);
+  };
+
   const [strainAvailability, setStrainAvailability] = useState({});
   const updateStrainAvailabilityAction = useAction(updateStrainAvailability);
 
@@ -112,7 +123,6 @@ export function DispensaryDashboard() {
   }, [strains]);
 
   const handleToggleAvailability = async (strain, currentAvailability) => {
-
     setStrainAvailability((prev) => ({
       ...prev,
       [strain.id]: !currentAvailability,
@@ -225,7 +235,7 @@ export function DispensaryDashboard() {
                 <Td alignContent={"center"}>
                   <Button
                     colorScheme="blue"
-                    // onClick={() => handleSendText(i.strain.name)}
+                    onClick={() => handleSendNotification(i.strain.name)}
                   >
                     <MdOutlineSms />
                   </Button>
@@ -257,6 +267,11 @@ export function DispensaryDashboard() {
           closeModal={closeModal}
           dispensarySlug={slug}
           nonStrains={strains.map((i) => i.strain.id)}
+        />
+        <SendNotificationModal
+          modalIsOpen={sendNotificationModalIsOpen}
+          closeModal={() => setSendNotificationModalIsOpen(false)}
+          strainName={selectedStrainForNotification}
         />
       </Box>
     </Container>

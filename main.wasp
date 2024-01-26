@@ -111,6 +111,7 @@ entity UserStrain {=psl
     strainId Int
     dispensary Dispensary @relation(fields: [dispensarySlug], references: [slug], onDelete: Cascade)
     dispensarySlug String @default("dispensary slug")
+    notificationType String? 
     // unique compound index on userId, strainId, dispensaryName
     @@id([userId, strainId, dispensarySlug])
 psl=}
