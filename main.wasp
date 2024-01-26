@@ -82,6 +82,7 @@ entity User {=psl
     emailVerificationSentAt DateTime?
     passwordResetSentAt DateTime?
     strains      UserStrain[]
+    notificationType String?
 psl=}
 
 entity Dispensary {=psl
@@ -96,7 +97,7 @@ entity Dispensary {=psl
 psl=}
 
 entity Strain {=psl
-    id           Int          @id @default(autoincrement())
+    id           Int          @unique @id @default(autoincrement())
     name         String @unique
     users        UserStrain[]
     dispensaries DispensaryStrain[]
@@ -111,7 +112,6 @@ entity UserStrain {=psl
     strainId Int
     dispensary Dispensary @relation(fields: [dispensarySlug], references: [slug], onDelete: Cascade)
     dispensarySlug String @default("dispensary slug")
-    notificationType String? 
     // unique compound index on userId, strainId, dispensaryName
     @@id([userId, strainId, dispensarySlug])
 psl=}
@@ -186,6 +186,11 @@ action updatePhone {
 action createDispensaryStrain {
   fn: import { createDispensaryStrain } from "@server/actions.js",
   entities: [DispensaryStrain]
+}
+
+action sendStrainNotification {
+  fn: import { sendStrainNotification } from "@server/actions.js",
+  entities: [UserStrain, Dispensary, Strain]
 }
 
 /////// QUERIES ///////

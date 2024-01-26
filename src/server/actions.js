@@ -1,5 +1,6 @@
 import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
+import { emailSender } from "@wasp/email/index.js";
 
 export const createUser = async (args, context) => {
   const { email, password, phone } = args;
@@ -240,4 +241,72 @@ export const updatePhone = async (args, context) => {
   });
 
   return user;
+}
+
+export const sendStrainNotification = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to send a notification");
+  }
+
+  const { dispensarySlug, strainId } = args;
+
+  const userStrains = await context.entities.UserStrain.findMany({
+    where: {
+      dispensarySlug,
+      strainId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  const users = userStrains.map((userStrain) => userStrain.user);
+
+  if (users.length === 0) {
+    console.log("No users to notify");
+    throw new HttpError(404, "No users to notify");
+  }
+
+  // get dispensary and strain information for email/text message content
+
+  const dispensary = await context.entities.Dispensary.findUnique({
+    where: { slug: dispensarySlug },
+  });
+
+  const strain = await context.entities.Strain.findUnique({
+    where: { id: strainId },
+  });
+
+  /// send notification to users via text and email here
+  /// check user.notificationSettings to see if they want to be notified via text or email or both 
+  /// and then do that with SendGrid and Twilio
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    if (user.notificationType === null) {
+      console.log("No notification settings for user " + user.id);
+      continue;
+    }
+    console.log("Sending notification(s) to user " + user.id);
+    if (user.notificationType.includes("text")) {
+      console.log("Sending text to " + user.phone);
+
+    }
+    if (user.notificationType.includes("email")) {
+      console.log("Sending email to " + user.email);
+      const info = await emailSender.send({
+        from: {
+          name: "TerpText",
+          email: "terps@terpmetrix.com",
+        },
+        to: user.email,
+        subject: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+        text: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+        html: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+      });
+
+    }
+  }
+
+  return users;
 }

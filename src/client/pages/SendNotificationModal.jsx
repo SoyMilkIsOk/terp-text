@@ -7,9 +7,44 @@ import {
   Box,
   Center,
   Text,
+  useToast,
 } from "@chakra-ui/react";
+import { useAction } from "@wasp/actions";
+import sendStrainNotification from "@wasp/actions/sendStrainNotification";
 
-export function SendNotificationModal({ modalIsOpen, closeModal, strainName }) {
+export function SendNotificationModal({
+  modalIsOpen,
+  closeModal,
+  strain,
+  dispensarySlug,
+}) {
+  const toast = useToast();
+  const sendStrainNotificationFn = useAction(sendStrainNotification);
+
+  const handleSendNotification = async () => {
+    try {
+      // Implement the action to send notification
+      await sendStrainNotificationFn({ strainId: strain.id, dispensarySlug });
+      closeModal();
+      toast({
+        title: "Notification sent",
+        description: "The notification has been successfully sent.",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error sending notification",
+        description: error.message || error.toString(),
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <Modal
       isOpen={modalIsOpen}
@@ -42,12 +77,14 @@ export function SendNotificationModal({ modalIsOpen, closeModal, strainName }) {
       />
       <Center>
         <Box>
-          <Text mb={4}>Are you sure you want to send a notification for "{strainName}"?</Text>
+          <Text mb={4}>
+            Are you sure you want to send a notification for "{strain.name}"?
+          </Text>
           <Button
             colorScheme="blue"
             onClick={() => {
               // Implement the action to send notification
-              closeModal();
+              handleSendNotification();
             }}
           >
             Send Notification

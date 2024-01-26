@@ -93,10 +93,10 @@ export function DispensaryDashboard() {
   const [sendNotificationModalIsOpen, setSendNotificationModalIsOpen] =
     useState(false);
   const [selectedStrainForNotification, setSelectedStrainForNotification] =
-    useState("");
+    useState([]);
 
-  const handleSendNotification = (strainName) => {
-    setSelectedStrainForNotification(strainName);
+  const handleSendNotification = (strain) => {
+    setSelectedStrainForNotification(strain);
     setSendNotificationModalIsOpen(true);
   };
 
@@ -235,7 +235,7 @@ export function DispensaryDashboard() {
                 <Td alignContent={"center"}>
                   <Button
                     colorScheme="blue"
-                    onClick={() => handleSendNotification(i.strain.name)}
+                    onClick={() => handleSendNotification(i.strain, slug)}
                   >
                     <MdOutlineSms />
                   </Button>
@@ -271,7 +271,8 @@ export function DispensaryDashboard() {
         <SendNotificationModal
           modalIsOpen={sendNotificationModalIsOpen}
           closeModal={() => setSendNotificationModalIsOpen(false)}
-          strainName={selectedStrainForNotification}
+          strain={selectedStrainForNotification}
+          dispensarySlug={slug}
         />
       </Box>
     </Container>
