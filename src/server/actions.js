@@ -1,6 +1,7 @@
 import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
 import { emailSender } from "@wasp/email/index.js";
+import twilio from 'twilio';
 
 export const createUser = async (args, context) => {
   const { email, password, phone } = args;
@@ -267,8 +268,6 @@ export const sendStrainNotification = async (args, context) => {
     throw new HttpError(404, "No users to notify");
   }
 
-  // get dispensary and strain information for email/text message content
-
   const dispensary = await context.entities.Dispensary.findUnique({
     where: { slug: dispensarySlug },
   });
@@ -277,9 +276,10 @@ export const sendStrainNotification = async (args, context) => {
     where: { id: strainId },
   });
 
-  /// send notification to users via text and email here
-  /// check user.notificationSettings to see if they want to be notified via text or email or both 
-  /// and then do that with SendGrid and Twilio
+  // Initialize Twilio client
+  console.log("Initializing Twilio client");
+  console.log("TWILIO_ACCOUNT_SID: " + process.env.TWILIO_ACCOUNT_SID);
+  const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
@@ -288,10 +288,21 @@ export const sendStrainNotification = async (args, context) => {
       continue;
     }
     console.log("Sending notification(s) to user " + user.id);
-    if (user.notificationType.includes("text")) {
-      console.log("Sending text to " + user.phone);
 
+    if (user.notificationType.includes("text") && user.phone) {
+      console.log("Sending text to " + user.phone);
+      try {
+        const message = await twilioClient.messages.create({
+          body: `TerpText Notification for ${strain.name} @ ${dispensary.name}`,
+          to: user.phone, // User's phone number
+          messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
+        });
+        console.log("Text message sent: " + message.sid);
+      } catch (error) {
+        console.error("Failed to send text message: " + error.message);
+      }
     }
+
     if (user.notificationType.includes("email")) {
       console.log("Sending email to " + user.email);
       const info = await emailSender.send({
@@ -309,4 +320,23 @@ export const sendStrainNotification = async (args, context) => {
   }
 
   return users;
+};
+
+export const updateUserNotificationType = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Must be logged in to update notification type");
+  }
+
+  const { notificationType } = args;
+
+  const user = await context.entities.User.update({
+    where: {
+      id: context.user.id,
+    },
+    data: {
+      notificationType,
+    },
+  });
+
+  return user;
 }

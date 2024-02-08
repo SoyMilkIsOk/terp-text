@@ -14,6 +14,8 @@ import {
   Switch,
   Flex,
   Spacer,
+  VStack,
+  HStack,
   FormControl,
   FormLabel,
   Center,
@@ -23,8 +25,9 @@ import {
   Link as ChakraLink,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-import { FaRegSave } from "react-icons/fa";
+import { FaRegSave, FaSms } from "react-icons/fa";
 import { FaRegCircleXmark } from "react-icons/fa6";
+import { MdEmail } from "react-icons/md";
 import useAuth from "@wasp/auth/useAuth";
 import { useQuery } from "@wasp/queries";
 import getUser from "@wasp/queries/getUser";
@@ -32,7 +35,8 @@ import updatePhone from "@wasp/actions/updatePhone"; // Assume this action is im
 import unsubscribeFromTexts from "@wasp/actions/unsubscribeFromTexts"; // Assume this action is implemented
 import createUserDispensary from "@wasp/actions/createUserDispensary"; // Assume this action is implemented
 import deleteUserDispensary from "@wasp/actions/deleteUserDispensary"; // Assume this action is implemented
-import { FaPhone } from "react-icons/fa";
+import { useAction } from "@wasp/actions";
+import updateUserNotificationType from "@wasp/actions/updateUserNotificationType";
 
 export const UserProfile = () => {
   const { data: user } = useAuth();
@@ -43,6 +47,9 @@ export const UserProfile = () => {
     id: user?.id,
   });
 
+  const [hasEmailNotifications, setHasEmailNotifications] = useState(false);
+  const [hasTextNotifications, setHasTextNotifications] = useState(false);
+
   useEffect(() => {
     setPhone(user?.phone || "");
     setDispensaries(
@@ -52,6 +59,10 @@ export const UserProfile = () => {
         .map((d) => ({ ...d, enabled: true }))
     );
     document.title = "TerpText - Your Profile";
+    if (user?.notificationType) {
+      setHasEmailNotifications(user.notificationType.includes("email"));
+      setHasTextNotifications(user.notificationType.includes("text"));
+    }
   }, [user, userProfile]);
 
   const handlePhoneUpdate = async () => {
@@ -70,6 +81,31 @@ export const UserProfile = () => {
     } catch (error) {
       toast({ title: "Error in unsubscribing", status: "error" });
     }
+  };
+
+  const updateUserNotificationTypeFn = useAction(updateUserNotificationType);
+
+  const handleNotificationTypeUpdate = async (notificationType) => {
+    try {
+      await updateUserNotificationTypeFn({ notificationType });
+      toast({ title: "Notification settings updated", status: "success" });
+    } catch (error) {
+      toast({ title: "Error updating notification settings", status: "error" });
+    }
+  };
+
+  const handleEmailSwitchChange = (isChecked) => {
+    setHasEmailNotifications(isChecked);
+    const notificationType =
+      (isChecked ? "email" : "") + (hasTextNotifications ? "text" : "");
+    handleNotificationTypeUpdate(notificationType);
+  };
+
+  const handleTextSwitchChange = (isChecked) => {
+    setHasTextNotifications(isChecked);
+    const notificationType =
+      (hasEmailNotifications ? "email" : "") + (isChecked ? "text" : "");
+    handleNotificationTypeUpdate(notificationType);
   };
 
   const handleDispensaryChange = async (
@@ -92,6 +128,8 @@ export const UserProfile = () => {
         duration: 1000,
         isClosable: true,
       });
+
+      // Update state to reflect the change
       setDispensaries((prevSettings) =>
         prevSettings.map((d) =>
           d.name === dispensaryName ? { ...d, enabled: isChecked } : d
@@ -122,6 +160,36 @@ export const UserProfile = () => {
         <Heading as="h1" mb={4}>
           User Profile
         </Heading>
+
+        <FormControl minW={"xl"} mb={8}>
+          <FormLabel mt={4}>Update Notifications</FormLabel>
+          <Center>
+            <Flex minW={"xs"}>
+              <VStack alignContent={"center"}>
+                <FormLabel ml={3} htmlFor="email-notifications">
+                  <MdEmail />
+                </FormLabel>
+                <Switch
+                  id="email-notifications"
+                  isChecked={hasEmailNotifications}
+                  onChange={(e) => handleEmailSwitchChange(e.target.checked)}
+                />
+              </VStack>
+              <Spacer />
+              <VStack>
+                <FormLabel ml={3} htmlFor="text-notifications">
+                  <FaSms />
+                </FormLabel>
+                <Switch
+                  id="text-notifications"
+                  isChecked={hasTextNotifications}
+                  onChange={(e) => handleTextSwitchChange(e.target.checked)}
+                />
+              </VStack>
+            </Flex>
+          </Center>
+        </FormControl>
+
         <FormControl>
           <FormLabel>Update Phone Number</FormLabel>
           <Flex>
@@ -181,11 +249,9 @@ export const UserProfile = () => {
                     <Switch
                       isChecked={dispensary.enabled}
                       onChange={(e) =>
-                        //check if dispensary switch was toggled on or off
-                        e.target.checked &&
                         handleDispensaryChange(
                           dispensary?.slug,
-                          e.target.checked,
+                          e.target.checked, // This will be true or false based on the switch's new state
                           dispensary.name
                         )
                       }

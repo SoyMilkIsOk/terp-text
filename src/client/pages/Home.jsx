@@ -19,7 +19,6 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
-import AgeVerificationModal from "./AgeVerificationModal";
 
 export const Home = () => {
   useEffect(() => {
