@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import useAuth from "@wasp/auth/useAuth";
 import logout from "@wasp/auth/logout";
-import "./Main.css";
+import "./styles/Main.css";
 import {
   ChakraProvider,
   Tooltip,
@@ -22,8 +22,8 @@ export const App = ({ children }) => {
   return (
     <ChakraProvider>
       <AgeVerificationModal />
-      <div className="flex flex-col min-h-screen">
-        <header className="bg-primary-800 text-white p-4">
+      <div className="flex flex-col min-h-screen bg-gray-5">
+        <header className="bg-primary-700 text-white p-4">
           <div className="container mx-auto px-4 py-2 flex justify-between">
             <Link to="/" className="flex items-center gap-2">
               <img
@@ -32,7 +32,7 @@ export const App = ({ children }) => {
                 width={35}
                 height={35}
               ></img>
-              <h1 className="text-[1.2em] font-semibold">TerpText</h1>
+              <h1 className="text-[1.7em] font-semibold">TerpText</h1>
             </Link>
             {!isIndex ? (
               <div>
