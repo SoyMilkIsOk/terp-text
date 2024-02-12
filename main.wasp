@@ -8,7 +8,9 @@ app TerpText {
     ("@chakra-ui/react", "2.8.0"),
     ("react-modal", "3.16.1"),
     ("js-cookie", "3.0.5"),
-    ("twilio","4.21.0")
+    ("twilio","4.21.0"),
+    ("classnames", "2.5.1"),
+    ("sass", "1.70.0")
   ],
   client: {
     rootComponent: import { App } from "@client/App.jsx"
@@ -228,7 +230,14 @@ query getAllStrains {
 
 /////// ROUTES ///////
 
-route HomeRoute { path: "/", to: HomePage }
+route LandingRoute { path: "/", to: LandingPage }
+
+page LandingPage {
+  component: import { Landing } from "@client/pages/Landing.jsx",
+  authRequired: false
+}
+
+route HomeRoute { path: "/home", to: HomePage }
 
 page HomePage {
   component: import { Home } from "@client/pages/Home.jsx",

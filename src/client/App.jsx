@@ -13,9 +13,11 @@ import terptextLogo from "/images/terptext-logo.png";
 import { TbLogout, TbLogin } from "react-icons/tb";
 import { FaRegUserCircle } from "react-icons/fa";
 import AgeVerificationModal from "./pages/AgeVerificationModal";
+import { Footer } from "./components/Footer";
 
 export const App = ({ children }) => {
   const { data: user } = useAuth();
+  const isIndex = window.location.pathname === "/";
 
   return (
     <ChakraProvider>
@@ -32,65 +34,74 @@ export const App = ({ children }) => {
               ></img>
               <h1 className="text-[1.2em] font-semibold">TerpText</h1>
             </Link>
-            {user ? (
-              <span className="mt-2">
-                <Tooltip label="Your profile" aria-label="Your profile">
-                  <Button
-                    to={"/user/profile"}
-                    as={Link}
-                    colorScheme="blue"
-                    size={"md"}
-                  >
-                    <FaRegUserCircle />
-                  </Button>
-                </Tooltip>
-                <Tooltip label="Log out" aria-label="Log out">
-                  <Button
-                    onClick={logout}
-                    colorScheme="red"
-                    size={"md"}
-                    className="ml-2"
-                  >
-                    <TbLogout />
-                  </Button>
-                </Tooltip>
-              </span>
-            ) : (
-              <Stack direction="row" spacing={4}>
-                <ChakraLink
-                  as={Link}
-                  fontWeight={"bold"}
-                  to="/login"
-                  className="mt-2"
-                >
-                  Log in
-                </ChakraLink>
+            {!isIndex ? (
+              <div>
+                {user ? (
+                  <span className="mt-2">
+                    <Tooltip label="Your profile" aria-label="Your profile">
+                      <Button
+                        to={"/user/profile"}
+                        as={Link}
+                        colorScheme="blue"
+                        size={"md"}
+                      >
+                        <FaRegUserCircle />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip label="Log out" aria-label="Log out">
+                      <Button
+                        onClick={logout}
+                        colorScheme="red"
+                        size={"md"}
+                        className="ml-2"
+                      >
+                        <TbLogout />
+                      </Button>
+                    </Tooltip>
+                  </span>
+                ) : (
+                  <Stack direction="row" spacing={4}>
+                    <ChakraLink
+                      as={Link}
+                      fontWeight={"bold"}
+                      to="/login"
+                      className="mt-2"
+                    >
+                      Log in
+                    </ChakraLink>
+                    <Button
+                      as={Link}
+                      to="/signup"
+                      colorScheme="blue"
+                      size={"md"}
+                      fontWeight={"bold"}
+                    >
+                      Sign up
+                    </Button>
+                  </Stack>
+                )}{" "}
+              </div>
+            ) : 
+            (
+              <div>
                 <Button
                   as={Link}
                   to="/signup"
-                  colorScheme="blue"
+                  colorScheme="green"
                   size={"md"}
                   fontWeight={"bold"}
                 >
-                  Sign up
+                  Book a Demo
                 </Button>
-              </Stack>
-            )}
+              </div>
+            )
+            }
           </div>
         </header>
         <main className="container mx-auto px-4 py-2 flex-grow">
           {children}
         </main>
-        <footer>
-          <div className="container mx-auto p-4">
-            <p className="text-center text-gray-500 text-sm">
-              TerpText ~ Powered by{" "}
-              <a href="https://terpmetrix.com" className="underline">
-                Terpmetrix{" "}
-              </a>
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </ChakraProvider>
   );
