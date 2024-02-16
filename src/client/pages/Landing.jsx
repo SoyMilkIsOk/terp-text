@@ -21,6 +21,8 @@ import { FaBell } from "react-icons/fa";
 import { AiFillShop } from "react-icons/ai";
 import { FaQuestionCircle } from "react-icons/fa";
 import { MdOutlineQrCodeScanner } from "react-icons/md";
+import { useEffect } from "react";
+import { PopupButton } from "react-calendly";
 
 export const Landing = () => {
   const messages = [
@@ -33,6 +35,12 @@ export const Landing = () => {
     },
   ];
 
+  useEffect(() => {
+    document.title = "TerpText - Welcome to the Future of Cannabis";
+  }, []);
+
+  const demoURL = "https://calendly.com/terpmetrix/terptext-demo";
+
   const isMobile = window.innerWidth < 768;
 
   return (
@@ -41,7 +49,7 @@ export const Landing = () => {
         columns={{ sm: 1, md: 2 }}
         spacing={40}
         mx={"auto"}
-        className="my-10 sm:my-18 md:my-24"
+        className="my-10 sm:my-24 md:my-40"
       >
         <Box m={"auto"} textAlign={"center"}>
           <VStack spacing={8}>

@@ -10,7 +10,8 @@ app TerpText {
     ("js-cookie", "3.0.5"),
     ("twilio","4.21.0"),
     ("classnames", "2.5.1"),
-    ("sass", "1.70.0")
+    ("sass", "1.70.0"),
+    ("react-calendly", "4.1.0")
   ],
   client: {
     rootComponent: import { App } from "@client/App.jsx"
