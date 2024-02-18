@@ -1,7 +1,7 @@
 import HttpError from "@wasp/core/HttpError.js";
 import { Prisma } from "@prisma/client";
 import { emailSender } from "@wasp/email/index.js";
-import twilio from 'twilio';
+import twilio from "twilio";
 
 export const createUser = async (args, context) => {
   const { email, password, phone } = args;
@@ -15,10 +15,9 @@ export const createUser = async (args, context) => {
   });
 
   return user;
-}
+};
 
 export const createDispensary = async (args, context) => {
-
   const { name, phone, slug, website } = args;
 
   const dispensary = await context.entities.Dispensary.create({
@@ -31,21 +30,34 @@ export const createDispensary = async (args, context) => {
   });
 
   return dispensary;
-}
+};
 
 export const createStrain = async (args, context) => {
+  const { name, grower, dispensarySlug, available } = args;
 
-  const { name, grower } = args;
-
-  const strain = await context.entities.Strain.create({
-    data: {
-      name,
-      grower,
-    },
-  });
+  if (!dispensarySlug) {
+    const strain = await context.entities.Strain.create({
+      data: {
+        name,
+        grower,
+      },
+    });
+  } else {
+    const strain = await context.entities.Strain.create({
+      data: {
+        name,
+        grower,
+        dispensaries: {
+          connect: {
+            slug: dispensarySlug,
+          },
+        },
+      },
+    });
+  }
 
   return strain;
-}
+};
 
 export const deleteStrain = async (args, context) => {
   if (!context.user) {
@@ -64,25 +76,23 @@ export const deleteStrain = async (args, context) => {
   });
 
   return strain;
-}
+};
 
 export const linkStrain = async (args, context) => {
-  
-    const { strainName, dispensarySlug, available } = args;
-  
-    const strain = await context.entities.DispensaryStrain.create({
-      data: {
-        strainName,
-        dispensarySlug,
-        available,
-      },
-    });
-  
-    return strain;
-  }
+  const { strainName, dispensarySlug, available } = args;
+
+  const strain = await context.entities.DispensaryStrain.create({
+    data: {
+      strainName,
+      dispensarySlug,
+      available,
+    },
+  });
+
+  return strain;
+};
 
 export const updateStrainAvailability = async (args, context) => {
-
   const { strainName, dispensarySlug, available } = args;
 
   const currentDate = new Date();
@@ -96,10 +106,10 @@ export const updateStrainAvailability = async (args, context) => {
       available,
       availableDate: currentDate,
     },
-  });  
+  });
 
   return strain;
-}
+};
 
 export const deleteUserStrain = async (args, context) => {
   if (!context.user) {
@@ -117,7 +127,7 @@ export const deleteUserStrain = async (args, context) => {
   });
 
   return strain;
-}
+};
 
 export const createUserStrain = async (args, context) => {
   if (!context.user) {
@@ -135,7 +145,7 @@ export const createUserStrain = async (args, context) => {
   });
 
   return strain;
-}
+};
 
 export const deleteUserDispensary = async (args, context) => {
   if (!context.user) {
@@ -152,7 +162,7 @@ export const deleteUserDispensary = async (args, context) => {
   });
 
   return dispensary;
-}
+};
 
 export const createUserDispensary = async (args, context) => {
   if (!context.user) {
@@ -192,7 +202,7 @@ export const createUserDispensary = async (args, context) => {
   }
 
   return dispensary;
-}
+};
 
 export const createDispensaryStrain = async (args, context) => {
   if (!context.user) {
@@ -209,7 +219,7 @@ export const createDispensaryStrain = async (args, context) => {
   });
 
   return dispensary;
-}
+};
 
 export const unsubscribeFromTexts = async (args, context) => {
   if (!context.user) {
@@ -223,7 +233,7 @@ export const unsubscribeFromTexts = async (args, context) => {
   });
 
   return user;
-}
+};
 
 export const updatePhone = async (args, context) => {
   if (!context.user) {
@@ -242,7 +252,7 @@ export const updatePhone = async (args, context) => {
   });
 
   return user;
-}
+};
 
 export const sendStrainNotification = async (args, context) => {
   if (!context.user) {
@@ -279,7 +289,10 @@ export const sendStrainNotification = async (args, context) => {
   // Initialize Twilio client
   console.log("Initializing Twilio client");
   console.log("TWILIO_ACCOUNT_SID: " + process.env.TWILIO_ACCOUNT_SID);
-  const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  const twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
 
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
@@ -311,11 +324,13 @@ export const sendStrainNotification = async (args, context) => {
           email: "terps@terpmetrix.com",
         },
         to: user.email,
-        subject: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
-        text: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
-        html: "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+        subject:
+          "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+        text:
+          "TerpText Notification for " + strain.name + " @ " + dispensary.name,
+        html:
+          "TerpText Notification for " + strain.name + " @ " + dispensary.name,
       });
-
     }
   }
 
@@ -339,4 +354,4 @@ export const updateUserNotificationType = async (args, context) => {
   });
 
   return user;
-}
+};

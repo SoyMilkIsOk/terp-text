@@ -66,7 +66,7 @@ export const Landing = () => {
                   connect consumers with their favorite products.
                 </p>
               </Center>
-              <PopupButton url={demoURL} text="Book a Demo" className="bg-[#0b93f6] text-white px-4 py-2 rounded-lg" />
+              <PopupButton url={demoURL} text="Book a Demo" rootElement={root} className="bg-[#0b93f6] text-white px-4 py-2 rounded-lg" />
             </VStack>
           </Box>
         </MotionBox>

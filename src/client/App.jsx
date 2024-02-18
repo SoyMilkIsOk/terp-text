@@ -40,10 +40,17 @@ export const App = ({ children }) => {
           zIndex="sticky" // Ensure navbar stays on top of other content
         >
           <Flex justifyContent="space-between" alignItems="center" maxWidth="container.xl" marginX="auto">
+            {isIndex ? (
             <Link to="/" className="flex items-center gap-2">
               <Image src={terptextLogo} alt="TerpText Logo" boxSize="35px" />
               <Text fontSize="1.7em" fontWeight="semibold">TerpText</Text>
             </Link>
+            ) : (
+            <Link to="/home" className="flex items-center gap-2">
+              <Image src={terptextLogo} alt="TerpText Logo" boxSize="35px" />
+              <Text fontSize="1.7em" fontWeight="semibold">TerpText</Text>
+            </Link>
+            )}
             <Stack direction="row" spacing={4} align="center">
               {isIndex && (
                 <>
@@ -80,7 +87,7 @@ export const App = ({ children }) => {
                 </>
               )}
               {isIndex && (
-                <PopupButton url={demoURL} text="Book a Demo" className="bg-[#0b93f6] text-white px-4 py-2 rounded-lg" />
+                <PopupButton url={demoURL} text="Book a Demo" rootElement={root} className="bg-[#0b93f6] text-white px-4 py-2 rounded-lg"/>
               )}
             </Stack>
           </Flex>
