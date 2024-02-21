@@ -35,23 +35,19 @@ export const createDispensary = async (args, context) => {
 export const createStrain = async (args, context) => {
   const { name, grower, dispensarySlug, available } = args;
 
-  if (!dispensarySlug) {
     const strain = await context.entities.Strain.create({
       data: {
         name,
         grower,
       },
     });
-  } else {
-    const strain = await context.entities.Strain.create({
+
+    if (dispensarySlug) {
+    const dispensaryStrain = await context.entities.DispensaryStrain.create({
       data: {
-        name,
-        grower,
-        dispensaries: {
-          connect: {
-            slug: dispensarySlug,
-          },
-        },
+        strainId: strain.id,
+        dispensarySlug,
+        available,
       },
     });
   }
@@ -64,14 +60,13 @@ export const deleteStrain = async (args, context) => {
     throw new HttpError(401, "Must be logged in to delete a strain");
   }
 
-  const { strainName, dispensarySlug } = args;
+  const { strainId, dispensarySlug } = args;
 
   const slug = dispensarySlug;
 
-  const strain = await context.entities.DispensaryStrain.deleteMany({
+  const strain = await context.entities.Strain.deleteMany({
     where: {
-      strainName,
-      dispensarySlug,
+      id: strainId,
     },
   });
 
@@ -93,13 +88,13 @@ export const linkStrain = async (args, context) => {
 };
 
 export const updateStrainAvailability = async (args, context) => {
-  const { strainName, dispensarySlug, available } = args;
+  const { strainId, dispensarySlug, available } = args;
 
   const currentDate = new Date();
 
   const strain = await context.entities.DispensaryStrain.updateMany({
     where: {
-      strainName,
+      strainId,
       dispensarySlug,
     },
     data: {

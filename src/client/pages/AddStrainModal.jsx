@@ -1,46 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Modal from "react-modal";
 import {
   Button,
   CloseButton,
   FormControl,
   FormLabel,
-  Select,
+  Input,
+  Switch,
   Box,
   useToast,
   Center,
+  VStack,
+  FormHelperText,
 } from "@chakra-ui/react";
-import { useQuery } from "@wasp/queries";
-import getAllStrains from "@wasp/queries/getAllStrains";
 import { useAction } from "@wasp/actions";
-import createDispensaryStrain from "@wasp/actions/createDispensaryStrain";
+import createStrain from "@wasp/actions/createStrain"; // Assuming createStrain is the correct action to call
 
-export function AddStrainModal({ modalIsOpen, closeModal, dispensarySlug, nonStrains }) {
+export function AddStrainModal({ modalIsOpen, closeModal, dispensarySlug }) {
   const toast = useToast();
-  const [selectedStrain, setSelectedStrain] = useState("");
-  const [addableStrains, setAddableStrains] = useState([]);
+  const [strainName, setStrainName] = useState("");
+  const [growerName, setGrowerName] = useState("");
+  const [isAvailable, setIsAvailable] = useState(false);
 
-  const { data: strains, isLoading } = useQuery(getAllStrains);
-
-  useEffect(() => {
-    if (strains && strains.length > 0) {
-      const filteredStrains = strains.filter(strain => !nonStrains.includes(strain.id));
-      setAddableStrains(filteredStrains);
-    }
-  }, [strains, nonStrains]);
-
-  const createDispensaryStrainFn = useAction(createDispensaryStrain);
+  const createStrainFn = useAction(createStrain);
 
   const handleSubmit = async () => {
     try {
-      await createDispensaryStrainFn({
+      await createStrainFn({
+        name: strainName,
+        grower: growerName,
         dispensarySlug,
-        strainName: selectedStrain,
+        available: isAvailable,
       });
       closeModal();
       toast({
-        title: "Strain added",
-        description: "The strain has been successfully added to the dispensary.",
+        title: "Strain created",
+        description: "The new strain has been successfully created.",
         status: "success",
         duration: 1000,
         isClosable: true,
@@ -48,18 +43,14 @@ export function AddStrainModal({ modalIsOpen, closeModal, dispensarySlug, nonStr
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error adding strain",
-        description: "There was an error adding the strain to the dispensary.",
+        title: "Error creating strain",
+        description: "There was an error creating the new strain.",
         status: "error",
         duration: 1000,
         isClosable: true,
       });
     }
   };
-
-  if (isLoading) {
-    return <Box>Loading...</Box>;
-  }
 
   return (
     <Modal
@@ -83,36 +74,28 @@ export function AddStrainModal({ modalIsOpen, closeModal, dispensarySlug, nonStr
         },
       }}
     >
-      <CloseButton
-        position="absolute"
-        zIndex={1}
-        right="10px"
-        top="10px"
-        p={4}
-        onClick={closeModal}
-      />
+      <CloseButton position="absolute" zIndex={1} right="10px" top="10px" p={4} onClick={closeModal} />
       <Center>
-        <FormControl id="strain-select" isRequired>
-          <FormLabel>Select a Strain</FormLabel>
-          <Select
-            placeholder="Select strain"
-            value={selectedStrain}
-            onChange={(e) => setSelectedStrain(e.target.value)}
-          >
-            {addableStrains.map((strain) => (
-              <option key={strain.name} value={strain.name}>
-                {strain.name} - {strain.grower}
-              </option>
-            ))}
-          </Select>
-          <Button
-            mt={4}
-            colorScheme="blue"
-            onClick={() => handleSubmit()}
-          >
-            Add Strain
+        <VStack spacing={4}>
+          <FormControl id="strain-name" isRequired>
+            <FormLabel>Strain Name</FormLabel>
+            <Input value={strainName} onChange={(e) => setStrainName(e.target.value)} />
+          </FormControl>
+          <FormControl id="grower-name" isRequired>
+            <FormLabel>Grower Name</FormLabel>
+            <Input value={growerName} onChange={(e) => setGrowerName(e.target.value)} />
+          </FormControl>
+          <FormControl id="availability" display="flex" alignItems="center">
+            <FormLabel htmlFor="availability-switch" mb="0">
+              Availability
+            </FormLabel>
+            <Switch id="availability-switch" isChecked={isAvailable} onChange={() => setIsAvailable(!isAvailable)} />
+            <FormHelperText>Toggle to set the availability of the strain.</FormHelperText>
+          </FormControl>
+          <Button colorScheme="blue" onClick={handleSubmit}>
+            Create Strain
           </Button>
-        </FormControl>
+        </VStack>
       </Center>
     </Modal>
   );

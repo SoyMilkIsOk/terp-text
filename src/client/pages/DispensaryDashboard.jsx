@@ -64,9 +64,9 @@ export function DispensaryDashboard() {
     setIsOpen(false);
   }
 
-  const handleDeleteStrain = async (strainName, dispensarySlug) => {
+  const handleDeleteStrain = async (strainId, dispensarySlug) => {
     try {
-      await deleteStrainAction({ strainName, dispensarySlug });
+      await deleteStrainAction({ strainId, dispensarySlug });
       refetch();
       toast({
         title: "Success",
@@ -130,7 +130,7 @@ export function DispensaryDashboard() {
 
     try {
       await updateStrainAvailabilityAction({
-        strainName: strain.name,
+        strainId: strain.id,
         dispensarySlug: slug,
         available: !currentAvailability,
       });
@@ -243,7 +243,7 @@ export function DispensaryDashboard() {
                 <Td>
                   <Button
                     colorScheme="red"
-                    onClick={() => handleDeleteStrain(i.strain.name, slug)}
+                    onClick={() => handleDeleteStrain(i.strain.id, slug)}
                   >
                     <FaRegTrashAlt />
                   </Button>

@@ -13,6 +13,7 @@ app TerpText {
     ("sass", "1.70.0"),
     ("react-calendly", "4.1.0"),
     ("framer-motion","11.0.5"),
+    ("react-intersection-observer","9.8.0"),
     ("react-scroll","1.9.0")
   ],
   client: {
@@ -89,6 +90,7 @@ entity User {=psl
     passwordResetSentAt DateTime?
     strains      UserStrain[]
     notificationType String?
+    adminOf   Dispensary?
 psl=}
 
 entity Dispensary {=psl
@@ -97,14 +99,15 @@ entity Dispensary {=psl
     name    String   @unique
     phone   String?   @unique
     website String?   @unique
-    adminEmail String?
+    admin User? @relation(fields: [adminEmail], references: [email])
+    adminEmail String? @unique
     strains DispensaryStrain[]
     userStrains UserStrain[]
 psl=}
 
 entity Strain {=psl
     id           Int          @unique @id @default(autoincrement())
-    name         String @unique
+    name         String
     users        UserStrain[]
     dispensaries DispensaryStrain[]
     grower       String @default("grower")
@@ -126,8 +129,8 @@ entity DispensaryStrain {=psl
     id             Int          @id @default(autoincrement())
     dispensary     Dispensary   @relation(fields: [dispensarySlug], references: [slug], onDelete: Cascade)
     dispensarySlug String
-    strain         Strain       @relation(fields: [strainName], references: [name], onDelete: Cascade)
-    strainName     String @default("strain name")
+    strain         Strain       @relation(fields: [strainId], references: [id], onDelete: Cascade)
+    strainId       Int          @default(1)
     available      Boolean      @default(false)
     availableDate  DateTime     @default(now())
 psl=}
